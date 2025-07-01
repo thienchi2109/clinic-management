@@ -16,11 +16,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { formatDate } from '@/lib/utils';
 import { DailyTimeline } from './components/daily-timeline';
+import { format } from 'date-fns';
 
 export default function AppointmentsPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date('2024-07-30'));
+  const [date, setDate] = useState<Date | undefined>(new Date(2024, 6, 30));
 
-  const selectedDateString = date ? date.toISOString().split('T')[0] : undefined;
+  const selectedDateString = date ? format(date, 'yyyy-MM-dd') : undefined;
 
   const dailyAppointments = appointments.filter(
     (app) => app.date === selectedDateString
@@ -35,7 +36,7 @@ export default function AppointmentsPage() {
             <PopoverTrigger asChild>
               <Button variant="outline">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? formatDate(date.toISOString().split('T')[0]) : <span>Chọn ngày</span>}
+                {selectedDateString ? formatDate(selectedDateString) : <span>Chọn ngày</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
