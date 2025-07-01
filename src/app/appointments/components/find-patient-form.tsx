@@ -1,18 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronsUpDown, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -20,11 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { PatientForm } from '@/app/patients/components/patient-form';
 import type { Patient } from '@/lib/types';
@@ -38,12 +27,22 @@ interface FindPatientFormProps {
 }
 
 export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNewPatient, onClose }: FindPatientFormProps) {
-  const [popoverOpen, setPopoverOpen] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedPatientId, setSelectedPatientId] = React.useState<string | undefined>();
   const [isNewPatientDialogOpen, setIsNewPatientDialogOpen] = React.useState(false);
   const [error, setError] = React.useState('');
 
   const availablePatients = patients.filter(p => !walkInQueue.some(q => q.id === p.id));
+  
+  const filteredPatients = React.useMemo(() => {
+    if (!searchTerm) {
+      return availablePatients;
+    }
+    return availablePatients.filter(patient =>
+      patient.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, availablePatients]);
+
   const selectedPatient = patients.find(p => p.id === selectedPatientId);
 
   const handleAddToQueue = () => {
@@ -69,53 +68,40 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
     <div className="py-4 space-y-4">
       <div className="grid gap-4">
         <div className="space-y-1.5">
-          <Label>Tìm bệnh nhân hiện có</Label>
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={popoverOpen}
-                className="w-full justify-between"
-              >
-                {selectedPatientId
-                  ? availablePatients.find((patient) => patient.id === selectedPatientId)?.name
-                  : "Tìm hoặc chọn bệnh nhân..."}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command>
-                <CommandInput placeholder="Tìm bệnh nhân..." />
-                <CommandList>
-                  <CommandEmpty>Không tìm thấy bệnh nhân.</CommandEmpty>
-                  <CommandGroup>
-                    {availablePatients.map((patient) => (
-                      <CommandItem
+          <Label htmlFor="patient-search">Tìm bệnh nhân hiện có</Label>
+          <Input
+            id="patient-search"
+            placeholder="Nhập tên bệnh nhân để tìm kiếm..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <ScrollArea className="h-[200px] w-full rounded-md border">
+            <div className="p-2">
+                {filteredPatients.length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground p-4">Không tìm thấy bệnh nhân.</p>
+                ) : (
+                    filteredPatients.map((patient) => (
+                      <button
                         key={patient.id}
-                        value={patient.name}
-                        onSelect={() => {
+                        onClick={() => {
                           setSelectedPatientId(patient.id);
                           setError('');
-                          setPopoverOpen(false);
                         }}
+                        className={cn(
+                          "w-full text-left p-2 rounded-md text-sm hover:bg-accent",
+                          selectedPatientId === patient.id && "bg-accent text-accent-foreground"
+                        )}
                       >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            selectedPatientId === patient.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
                         {patient.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-        </div>
+                      </button>
+                    ))
+                )}
+            </div>
+        </ScrollArea>
+        {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+        
         <Button onClick={handleAddToQueue} disabled={!selectedPatient}>
           Thêm bệnh nhân đã chọn vào hàng chờ
         </Button>
