@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { appointments as mockAppointments, staff } from '@/lib/mock-data';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
@@ -21,11 +21,16 @@ import { format } from 'date-fns';
 import type { Appointment } from '@/lib/types';
 
 export default function AppointmentsPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [date, setDate] = useState<Date | undefined>();
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const selectedDateString = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  useEffect(() => {
+    // Set date only on the client-side to prevent hydration mismatch
+    setDate(new Date());
+  }, []);
+
+  const selectedDateString = date ? format(date, 'yyyy-MM-dd') : '';
 
   const dailyAppointments = appointments.filter(
     (app) => app.date === selectedDateString
