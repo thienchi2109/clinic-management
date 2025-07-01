@@ -52,7 +52,7 @@ export function SidebarNav() {
           <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
             <Stethoscope className="h-6 w-6" />
           </Button>
-          <h1 className="text-lg font-headline font-semibold">ClinicPlus</h1>
+          <h1 className="text-lg font-headline font-semibold">Clinic Management</h1>
           <div className="ml-auto">
             <SidebarTrigger />
           </div>
