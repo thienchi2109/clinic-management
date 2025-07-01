@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,7 +23,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 import type { Appointment, Staff } from '@/lib/types';
 
-const appointmentFormSchema = z.object({
+const baseAppointmentFormSchema = z.object({
   patientName: z.string().min(2, { message: 'Tên bệnh nhân phải có ít nhất 2 ký tự.' }),
   doctorName: z.string({ required_error: 'Vui lòng chọn bác sĩ.' }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
@@ -34,16 +34,37 @@ const appointmentFormSchema = z.object({
     path: ["endTime"],
 });
 
-type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
+type AppointmentFormValues = z.infer<typeof baseAppointmentFormSchema>;
 
 interface AppointmentFormProps {
     staff: Staff[];
+    appointments: Appointment[];
     onSave: (appointment: Omit<Appointment, 'id' | 'status'>) => void;
     onClose: () => void;
 }
 
-export function AppointmentForm({ staff, onSave, onClose }: AppointmentFormProps) {
+export function AppointmentForm({ staff, appointments, onSave, onClose }: AppointmentFormProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const appointmentFormSchema = useMemo(() => {
+    return baseAppointmentFormSchema.refine(
+      (data) => {
+        const hasConflict = appointments.some(app =>
+            app.doctorName === data.doctorName &&
+            app.date === format(data.date, 'yyyy-MM-dd') &&
+            app.status === 'Scheduled' &&
+            data.startTime < app.endTime &&
+            data.endTime > app.startTime
+        );
+        return !hasConflict;
+      },
+      {
+        message: "Bác sĩ đã có lịch hẹn khác trong khung giờ này.",
+        path: ["startTime"],
+      }
+    );
+  }, [appointments]);
+
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {

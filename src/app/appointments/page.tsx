@@ -158,6 +158,7 @@ export default function AppointmentsPage() {
               </DialogHeader>
               <AppointmentForm
                 staff={staff}
+                appointments={appointments}
                 onSave={handleSaveAppointment}
                 onClose={() => setIsDialogOpen(false)}
               />
