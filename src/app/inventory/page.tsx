@@ -20,7 +20,7 @@ import { PlusCircle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 const getExpiryStatus = (expiryDate: string) => {
-  const today = new Date();
+  const today = new Date('2024-07-30'); // Use static date to prevent hydration errors
   today.setHours(0, 0, 0, 0);
   const expiry = new Date(expiryDate);
   const diffTime = expiry.getTime() - today.getTime();
