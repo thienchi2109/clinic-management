@@ -25,9 +25,11 @@ import type { Appointment, Staff, Patient } from '@/lib/types';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PatientForm } from '@/app/patients/components/patient-form';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
 
 const baseAppointmentFormSchema = z.object({
-  patientName: z.string({ required_error: 'Vui lòng chọn bệnh nhân.' }),
+  patientName: z.string({ required_error: 'Vui lòng chọn bệnh nhân.' }).min(1, 'Vui lòng chọn bệnh nhân.'),
   doctorName: z.string({ required_error: 'Vui lòng chọn bác sĩ.' }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
   startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Thời gian không hợp lệ (HH:mm).' }),
@@ -52,6 +54,17 @@ interface AppointmentFormProps {
 export function AppointmentForm({ selectedDate, staff, appointments, patients, onSave, onSavePatient, onClose }: AppointmentFormProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
+  const [patientSearch, setPatientSearch] = useState('');
+  const [isPatientListVisible, setIsPatientListVisible] = useState(false);
+  
+  const filteredPatients = useMemo(() => {
+    if (!patientSearch) {
+      return [];
+    }
+    return patients.filter((patient) =>
+      patient.name.toLowerCase().includes(patientSearch.toLowerCase())
+    );
+  }, [patientSearch, patients]);
 
   const appointmentFormSchema = useMemo(() => {
     return baseAppointmentFormSchema.refine(
@@ -85,6 +98,7 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
   function handleSaveNewPatient(patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) {
     const newPatient = onSavePatient(patientData);
     form.setValue('patientName', newPatient.name, { shouldValidate: true });
+    setPatientSearch(newPatient.name);
   }
 
   function onSubmit(data: AppointmentFormValues) {
@@ -109,20 +123,55 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
             <FormItem>
               <FormLabel>Tên bệnh nhân</FormLabel>
               <div className="flex gap-2">
-                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                <div className="relative w-full">
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn một bệnh nhân" />
-                    </SelectTrigger>
+                    <Input
+                      placeholder="Nhập để tìm kiếm bệnh nhân..."
+                      value={patientSearch}
+                      onChange={(e) => {
+                        setPatientSearch(e.target.value);
+                        if (field.value) {
+                          field.onChange(undefined);
+                        }
+                        if (!isPatientListVisible) setIsPatientListVisible(true);
+                      }}
+                      onFocus={() => setIsPatientListVisible(true)}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          setIsPatientListVisible(false);
+                        }, 150);
+                      }}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {patients.map((patient) => (
-                      <SelectItem key={patient.id} value={patient.name}>
-                        {patient.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {isPatientListVisible && patientSearch && (
+                    <div className="absolute top-full mt-1 w-full z-10">
+                      <Card>
+                        <ScrollArea className="h-auto max-h-48 p-1">
+                          {filteredPatients.length > 0 ? (
+                            filteredPatients.map((p) => (
+                              <div
+                                key={p.id}
+                                className="p-2 text-sm hover:bg-accent rounded-md cursor-pointer"
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    field.onChange(p.name);
+                                    setPatientSearch(p.name);
+                                    setIsPatientListVisible(false);
+                                }}
+                              >
+                                {p.name}
+                              </div>
+                            ))
+                          ) : (
+                            <p className="p-2 text-center text-sm text-muted-foreground">
+                              Không tìm thấy bệnh nhân.
+                            </p>
+                          )}
+                        </ScrollArea>
+                      </Card>
+                    </div>
+                  )}
+                </div>
                 <Dialog open={isPatientFormOpen} onOpenChange={setIsPatientFormOpen}>
                   <Tooltip>
                     <TooltipTrigger asChild>
