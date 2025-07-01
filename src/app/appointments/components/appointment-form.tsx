@@ -24,6 +24,7 @@ import { cn, formatDate } from '@/lib/utils';
 import type { Appointment, Staff, Patient } from '@/lib/types';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PatientForm } from '@/app/patients/components/patient-form';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const baseAppointmentFormSchema = z.object({
   patientName: z.string({ required_error: 'Vui lòng chọn bệnh nhân.' }),
@@ -121,12 +122,19 @@ export function AppointmentForm({ staff, appointments, patients, onSave, onSaveP
                   </SelectContent>
                 </Select>
                 <Dialog open={isPatientFormOpen} onOpenChange={setIsPatientFormOpen}>
-                  <DialogTrigger asChild>
-                    <Button type="button" variant="outline" size="icon" className="flex-shrink-0">
-                      <UserPlus className="h-4 w-4" />
-                      <span className="sr-only">Thêm bệnh nhân mới</span>
-                    </Button>
-                  </DialogTrigger>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="outline" size="icon" className="flex-shrink-0">
+                          <UserPlus className="h-4 w-4" />
+                          <span className="sr-only">Thêm bệnh nhân mới</span>
+                        </Button>
+                      </DialogTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Thêm bệnh nhân mới</p>
+                    </TooltipContent>
+                  </Tooltip>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Thêm hồ sơ bệnh nhân mới</DialogTitle>
