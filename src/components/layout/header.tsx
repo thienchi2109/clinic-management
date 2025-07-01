@@ -17,12 +17,12 @@ import { Button } from '@/components/ui/button';
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-4 text-foreground sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
             <SidebarTrigger />
             <Link href="/" className="flex items-center gap-3">
               <Image src="https://i.postimg.cc/RCs26NTd/pharmacy-12481797.png" alt="Clinic Management Logo" width={28} height={28} />
-              <h1 className="whitespace-nowrap text-xl font-headline font-semibold uppercase">
+              <h1 className="whitespace-nowrap text-xl font-headline font-semibold">
                 Quản lý phòng khám
               </h1>
             </Link>
