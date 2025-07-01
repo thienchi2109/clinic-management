@@ -24,6 +24,7 @@ export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>();
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   useEffect(() => {
     // Set date only on the client-side to prevent hydration mismatch
@@ -60,7 +61,7 @@ export default function AppointmentsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-headline font-bold">Lịch hẹn</h1>
         <div className="flex items-center gap-4">
-          <Popover>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline">
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -71,7 +72,10 @@ export default function AppointmentsPage() {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={(selectedDate) => {
+                  setDate(selectedDate);
+                  setIsCalendarOpen(false);
+                }}
                 initialFocus
               />
             </PopoverContent>
