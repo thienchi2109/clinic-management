@@ -20,47 +20,40 @@ import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
 import type { Appointment } from '@/lib/types';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AppointmentsTable } from './components/appointments-table';
 
 export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>();
-  // Initialize with an empty array to prevent hydration mismatch, will be populated from localStorage.
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    // This effect runs only on the client to prevent hydration errors.
-    
-    // Set the initial date.
     setDate(new Date());
 
-    // Load appointments from localStorage or fall back to mock data.
     try {
       const cachedAppointments = localStorage.getItem('appointments');
       if (cachedAppointments) {
         setAppointments(JSON.parse(cachedAppointments));
       } else {
-        // If nothing in cache, use mock data and cache it for next time.
         setAppointments(mockAppointments);
         localStorage.setItem('appointments', JSON.stringify(mockAppointments));
       }
     } catch (error) {
       console.error("Failed to access localStorage or parse appointments", error);
-      // Fallback to mock data if localStorage fails.
       setAppointments(mockAppointments);
     }
-  }, []); // Empty dependency array ensures it runs once on mount.
+  }, []);
 
   const selectedDateString = date ? format(date, 'yyyy-MM-dd') : '';
 
-  // Get all appointments for the selected date, before applying search filter.
   const appointmentsForSelectedDate = useMemo(() =>
     appointments.filter((app) => app.date === selectedDateString),
     [appointments, selectedDateString]
   );
   
-  // Apply search filter to the day's appointments.
   const dailyAppointments = useMemo(() =>
     appointmentsForSelectedDate.filter((app) =>
       app.patientName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -68,7 +61,6 @@ export default function AppointmentsPage() {
     [appointmentsForSelectedDate, searchTerm]
   );
 
-  // Determine which staff to display based on all appointments for the day, so columns don't disappear when searching.
   const staffForDay = useMemo(() => {
     const staffNamesOnSchedule = [
       ...new Set(appointmentsForSelectedDate.map((app) => app.doctorName)),
@@ -88,7 +80,6 @@ export default function AppointmentsPage() {
         };
         const updatedAppointments = [...prevAppointments, newAppointment];
         try {
-            // Update localStorage whenever a new appointment is saved.
             localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
         } catch (error) {
             console.error("Failed to save appointments to localStorage", error);
@@ -98,9 +89,15 @@ export default function AppointmentsPage() {
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
+    <Tabs defaultValue="timeline" className="space-y-4 flex flex-col h-full">
       <div className="flex items-center justify-between flex-wrap gap-y-4">
-        <h1 className="text-2xl font-headline font-bold">Lịch hẹn</h1>
+        <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-headline font-bold">Lịch hẹn</h1>
+            <TabsList>
+                <TabsTrigger value="timeline">Dòng thời gian</TabsTrigger>
+                <TabsTrigger value="table">Bảng</TabsTrigger>
+            </TabsList>
+        </div>
         <div className="flex items-center gap-4 flex-wrap justify-end">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -154,9 +151,12 @@ export default function AppointmentsPage() {
           </Dialog>
         </div>
       </div>
-      <div className="flex-1 overflow-auto">
+      <TabsContent value="timeline" className="flex-1 overflow-auto">
         <DailyTimeline appointments={dailyAppointments} staff={staffForDay} />
-      </div>
-    </div>
+      </TabsContent>
+      <TabsContent value="table" className="flex-1 overflow-auto">
+        <AppointmentsTable appointments={dailyAppointments} />
+      </TabsContent>
+    </Tabs>
   );
 }
