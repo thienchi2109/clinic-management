@@ -11,7 +11,7 @@ import { SidebarNav } from './sidebar-nav';
 export function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
-      <Sidebar>
+      <Sidebar collapsible="icon">
         <SidebarNav />
       </Sidebar>
       <SidebarInset>{children}</SidebarInset>
