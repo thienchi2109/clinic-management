@@ -40,6 +40,7 @@ const baseAppointmentFormSchema = z.object({
 type AppointmentFormValues = z.infer<typeof baseAppointmentFormSchema>;
 
 interface AppointmentFormProps {
+    selectedDate?: Date;
     staff: Staff[];
     appointments: Appointment[];
     patients: Patient[];
@@ -48,7 +49,7 @@ interface AppointmentFormProps {
     onClose: () => void;
 }
 
-export function AppointmentForm({ staff, appointments, patients, onSave, onSavePatient, onClose }: AppointmentFormProps) {
+export function AppointmentForm({ selectedDate, staff, appointments, patients, onSave, onSavePatient, onClose }: AppointmentFormProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
 
@@ -75,6 +76,7 @@ export function AppointmentForm({ staff, appointments, patients, onSave, onSaveP
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
+      date: selectedDate,
       startTime: '',
       endTime: '',
     },

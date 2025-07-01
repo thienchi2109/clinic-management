@@ -215,6 +215,7 @@ export default function AppointmentsPage() {
                   </DialogDescription>
                 </DialogHeader>
                 <AppointmentForm
+                  selectedDate={date}
                   staff={staff}
                   appointments={appointments}
                   patients={patients}
