@@ -12,3 +12,8 @@ export function formatDate(dateString: string): string {
   const [year, month, day] = dateString.split('-');
   return `${day}/${month}/${year}`;
 }
+
+export function calculateAge(birthYear: number): number {
+  if (!birthYear) return 0;
+  return new Date().getFullYear() - birthYear;
+}

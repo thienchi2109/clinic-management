@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Activity, Calendar, Users, Pill } from 'lucide-react';
 import { appointments, patients, medications } from '@/lib/mock-data';
 import type { Patient } from '@/lib/types';
-import { formatDate } from '@/lib/utils';
+import { formatDate, calculateAge } from '@/lib/utils';
 
 const translateGender = (gender: Patient['gender']) => {
     switch(gender) {
@@ -123,7 +123,7 @@ export default function Dashboard() {
                     <TableCell>
                       <div className="font-medium">{patient.name}</div>
                       <div className="hidden text-sm text-muted-foreground md:inline">
-                        Tuổi: {patient.age}
+                        Tuổi: {calculateAge(patient.birthYear)}
                       </div>
                     </TableCell>
                     <TableCell className="hidden xl:table-column">

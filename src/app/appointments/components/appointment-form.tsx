@@ -19,12 +19,14 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, UserPlus } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
-import type { Appointment, Staff } from '@/lib/types';
+import type { Appointment, Staff, Patient } from '@/lib/types';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { PatientForm } from '@/app/patients/components/patient-form';
 
 const baseAppointmentFormSchema = z.object({
-  patientName: z.string().min(2, { message: 'Tên bệnh nhân phải có ít nhất 2 ký tự.' }),
+  patientName: z.string({ required_error: 'Vui lòng chọn bệnh nhân.' }),
   doctorName: z.string({ required_error: 'Vui lòng chọn bác sĩ.' }),
   date: z.date({ required_error: 'Vui lòng chọn ngày.' }),
   startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: 'Thời gian không hợp lệ (HH:mm).' }),
@@ -39,16 +41,20 @@ type AppointmentFormValues = z.infer<typeof baseAppointmentFormSchema>;
 interface AppointmentFormProps {
     staff: Staff[];
     appointments: Appointment[];
+    patients: Patient[];
     onSave: (appointment: Omit<Appointment, 'id' | 'status'>) => void;
+    onSavePatient: (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => Patient;
     onClose: () => void;
 }
 
-export function AppointmentForm({ staff, appointments, onSave, onClose }: AppointmentFormProps) {
+export function AppointmentForm({ staff, appointments, patients, onSave, onSavePatient, onClose }: AppointmentFormProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
 
   const appointmentFormSchema = useMemo(() => {
     return baseAppointmentFormSchema.refine(
       (data) => {
+        if (!data.date || !data.doctorName) return true;
         const hasConflict = appointments.some(app =>
             app.doctorName === data.doctorName &&
             app.date === format(data.date, 'yyyy-MM-dd') &&
@@ -68,11 +74,15 @@ export function AppointmentForm({ staff, appointments, onSave, onClose }: Appoin
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
-      patientName: '',
       startTime: '',
       endTime: '',
     },
   });
+
+  function handleSaveNewPatient(patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) {
+    const newPatient = onSavePatient(patientData);
+    form.setValue('patientName', newPatient.name, { shouldValidate: true });
+  }
 
   function onSubmit(data: AppointmentFormValues) {
     const newAppointment = {
@@ -95,9 +105,40 @@ export function AppointmentForm({ staff, appointments, onSave, onClose }: Appoin
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tên bệnh nhân</FormLabel>
-              <FormControl>
-                <Input placeholder="Nguyễn Văn A" {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn một bệnh nhân" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {patients.map((patient) => (
+                      <SelectItem key={patient.id} value={patient.name}>
+                        {patient.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Dialog open={isPatientFormOpen} onOpenChange={setIsPatientFormOpen}>
+                  <DialogTrigger asChild>
+                    <Button type="button" variant="outline" size="icon" className="flex-shrink-0">
+                      <UserPlus className="h-4 w-4" />
+                      <span className="sr-only">Thêm bệnh nhân mới</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Thêm hồ sơ bệnh nhân mới</DialogTitle>
+                      <DialogDescription>Nhập thông tin chi tiết cho bệnh nhân.</DialogDescription>
+                    </DialogHeader>
+                    <PatientForm
+                      onSave={handleSaveNewPatient}
+                      onClose={() => setIsPatientFormOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
               <FormMessage />
             </FormItem>
           )}

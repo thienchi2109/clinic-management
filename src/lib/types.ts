@@ -1,8 +1,10 @@
 export interface Patient {
   id: string;
   name: string;
-  age: number;
+  birthYear: number;
   gender: 'Male' | 'Female' | 'Other';
+  address: string;
+  phone: string;
   lastVisit: string;
   avatarUrl: string;
 }
@@ -18,7 +20,7 @@ export interface Appointment {
 }
 
 export interface Medication {
-  id: string;
+  id:string;
   name: string;
   batchNo: string;
   expiryDate: string;

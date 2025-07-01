@@ -1,0 +1,97 @@
+// src/app/patients/components/patient-form.tsx
+'use client';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DialogFooter } from '@/components/ui/dialog';
+import type { Patient } from '@/lib/types';
+
+const patientFormSchema = z.object({
+  name: z.string().min(2, { message: 'Tên bệnh nhân phải có ít nhất 2 ký tự.' }),
+  gender: z.enum(['Male', 'Female', 'Other'], { required_error: 'Vui lòng chọn giới tính.' }),
+  birthYear: z.coerce.number().min(1900, 'Năm sinh không hợp lệ.').max(new Date().getFullYear(), 'Năm sinh không hợp lệ.'),
+  address: z.string().min(5, { message: 'Địa chỉ phải có ít nhất 5 ký tự.' }),
+  phone: z.string().regex(/^\d{10}$/, { message: 'Số điện thoại phải có 10 chữ số.' }),
+});
+
+type PatientFormValues = z.infer<typeof patientFormSchema>;
+
+interface PatientFormProps {
+    onSave: (patient: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => void;
+    onClose: () => void;
+}
+
+export function PatientForm({ onSave, onClose }: PatientFormProps) {
+    const form = useForm<PatientFormValues>({
+        resolver: zodResolver(patientFormSchema),
+        defaultValues: {
+            name: '',
+            address: '',
+            phone: '',
+        },
+    });
+
+    function onSubmit(data: PatientFormValues) {
+        onSave(data);
+        onClose();
+    }
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2 pb-4">
+                <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Họ và tên</FormLabel>
+                        <FormControl><Input placeholder="Nguyễn Văn A" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="birthYear" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Năm sinh</FormLabel>
+                            <FormControl><Input type="number" placeholder="1990" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="gender" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Giới tính</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Chọn giới tính" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Male">Nam</SelectItem>
+                                    <SelectItem value="Female">Nữ</SelectItem>
+                                    <SelectItem value="Other">Khác</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
+                 <FormField control={form.control} name="phone" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Số điện thoại</FormLabel>
+                        <FormControl><Input placeholder="0901234567" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                 <FormField control={form.control} name="address" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Địa chỉ</FormLabel>
+                        <FormControl><Input placeholder="123 Đường Chính, Quận 1, TP.HCM" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                <DialogFooter className="pt-4">
+                    <Button type="button" variant="outline" onClick={onClose}>Hủy</Button>
+                    <Button type="submit">Lưu</Button>
+                </DialogFooter>
+            </form>
+        </Form>
+    );
+}

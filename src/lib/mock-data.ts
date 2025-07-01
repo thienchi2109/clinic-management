@@ -7,11 +7,11 @@ const staticExpired = '2024-07-25'; // 5 days before staticToday
 
 
 export const patients: Patient[] = [
-  { id: 'PAT001', name: 'John Doe', age: 45, gender: 'Male', lastVisit: '2023-10-15', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT002', name: 'Jane Smith', age: 34, gender: 'Female', lastVisit: '2023-11-01', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT003', name: 'Emily Jones', age: 28, gender: 'Female', lastVisit: '2023-11-20', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT004', name: 'Michael Brown', age: 56, gender: 'Male', lastVisit: '2023-12-05', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT005', name: 'Chris Wilson', age: 41, gender: 'Male', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: 'PAT001', name: 'Nguyễn Văn An', birthYear: 1979, gender: 'Male', address: '123 Đường Chính, Quận 1, TP.HCM', phone: '0901234567', lastVisit: '2023-10-15', avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: 'PAT002', name: 'Trần Thị Bích', birthYear: 1990, gender: 'Female', address: '456 Đường Sồi, Quận 3, TP.HCM', phone: '0902345678', lastVisit: '2023-11-01', avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: 'PAT003', name: 'Lê Thị Cẩm', birthYear: 1996, gender: 'Female', address: '789 Đường Thông, Quận 5, TP.HCM', phone: '0903456789', lastVisit: '2023-11-20', avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: 'PAT004', name: 'Phạm Văn Dũng', birthYear: 1968, gender: 'Male', address: '101 Đường Phong, Quận 10, TP.HCM', phone: '0904567890', lastVisit: '2023-12-05', avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: 'PAT005', name: 'Hoàng Văn Em', birthYear: 1983, gender: 'Male', address: '212 Đường Bạch Dương, Q.Tân Bình, TP.HCM', phone: '0905678901', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png' },
 ];
 
 export const staff: Staff[] = [
@@ -29,15 +29,15 @@ export const staff: Staff[] = [
 
 export const appointments: Appointment[] = [
   { id: 'APP001', patientName: 'Anh Thắng', doctorName: 'Bs. Hải', date: staticToday, startTime: '07:00', endTime: '07:30', status: 'Scheduled' },
-  { id: 'APP002', patientName: 'Chị Hoa', doctorName: 'Bs. Minh', date: staticToday, startTime: '08:00', endTime: '08:45', status: 'Completed' },
+  { id: 'APP002', patientName: 'Trần Thị Bích', doctorName: 'Bs. Minh', date: staticToday, startTime: '08:00', endTime: '08:45', status: 'Completed' },
   { id: 'APP003', patientName: 'Anh Mạnh', doctorName: 'Bs. Hoài', date: staticToday, startTime: '08:30', endTime: '09:00', status: 'Scheduled' },
   { id: 'APP004', patientName: 'Chị Mận', doctorName: 'Bs. Linh', date: staticToday, startTime: '09:15', endTime: '10:15', status: 'Cancelled' },
-  { id: 'APP005', patientName: 'Chị Nhung', doctorName: 'Đd. Hạnh', date: staticToday, startTime: '10:30', endTime: '11:15', status: 'Scheduled' },
+  { id: 'APP005', patientName: 'Nguyễn Văn An', doctorName: 'Đd. Hạnh', date: staticToday, startTime: '10:30', endTime: '11:15', status: 'Scheduled' },
   { id: 'APP006', patientName: 'Bệnh nhân X', doctorName: 'Đd. Hoa', date: staticToday, startTime: '14:00', endTime: '15:00', status: 'Scheduled' },
-  { id: 'APP007', patientName: 'Bệnh nhân Y', doctorName: 'Bs. Hải', date: staticToday, startTime: '11:00', endTime: '11:45', status: 'Completed' },
+  { id: 'APP007', patientName: 'Lê Thị Cẩm', doctorName: 'Bs. Hải', date: staticToday, startTime: '11:00', endTime: '11:45', status: 'Completed' },
   { id: 'APP008', patientName: 'Sarah Connor', doctorName: 'Bs. Minh', date: '2024-08-01', startTime: '09:30', endTime: '10:00', status: 'Scheduled' },
-  { id: 'APP009', patientName: 'Bệnh nhân Z', doctorName: 'Bs. An', date: staticToday, startTime: '09:00', endTime: '09:30', status: 'Scheduled' },
-  { id: 'APP010', patientName: 'Bệnh nhân W', doctorName: 'Bs. Bình', date: staticToday, startTime: '13:00', endTime: '14:00', status: 'Scheduled' },
+  { id: 'APP009', patientName: 'Phạm Văn Dũng', doctorName: 'Bs. An', date: staticToday, startTime: '09:00', endTime: '09:30', status: 'Scheduled' },
+  { id: 'APP010', patientName: 'Hoàng Văn Em', doctorName: 'Bs. Bình', date: staticToday, startTime: '13:00', endTime: '14:00', status: 'Scheduled' },
 ];
 
 export const medications: Medication[] = [
@@ -49,11 +49,11 @@ export const medications: Medication[] = [
 ];
 
 export const invoices: Invoice[] = [
-  { id: 'INV001', patientName: 'John Doe', date: '2023-10-15', amount: 150.00, status: 'Paid' },
-  { id: 'INV002', patientName: 'Jane Smith', date: '2023-11-01', amount: 75.50, status: 'Paid' },
-  { id: 'INV003', name: 'Emily Jones', date: '2023-11-20', amount: 200.00, status: 'Pending' },
-  { id: 'INV004', name: 'Michael Brown', date: '2023-12-05', amount: 310.75, status: 'Overdue' },
-  { id: 'INV005', name: 'Chris Wilson', date: '2024-01-02', amount: 50.00, status: 'Paid' },
+  { id: 'INV001', patientName: 'Nguyễn Văn An', date: '2023-10-15', amount: 150.00, status: 'Paid' },
+  { id: 'INV002', patientName: 'Trần Thị Bích', date: '2023-11-01', amount: 75.50, status: 'Paid' },
+  { id: 'INV003', patientName: 'Lê Thị Cẩm', date: '2023-11-20', amount: 200.00, status: 'Pending' },
+  { id: 'INV004', patientName: 'Phạm Văn Dũng', date: '2023-12-05', amount: 310.75, status: 'Overdue' },
+  { id: 'INV005', patientName: 'Hoàng Văn Em', date: '2024-01-02', amount: 50.00, status: 'Paid' },
 ];
 
 export const documents: PatientDocument[] = [

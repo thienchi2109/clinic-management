@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { appointments as mockAppointments, staff } from '@/lib/mock-data';
-import { PlusCircle, Calendar as CalendarIcon, Search } from 'lucide-react';
+import { appointments as mockAppointments, patients as mockPatients, staff } from '@/lib/mock-data';
+import { PlusCircle, Calendar as CalendarIcon, Search, UserPlus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import { formatDate } from '@/lib/utils';
 import { DailyTimeline } from './components/daily-timeline';
 import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
-import type { Appointment } from '@/lib/types';
+import type { Appointment, Patient } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentsTable } from './components/appointments-table';
@@ -26,6 +26,7 @@ import { AppointmentsTable } from './components/appointments-table';
 export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,9 +42,19 @@ export default function AppointmentsPage() {
         setAppointments(mockAppointments);
         localStorage.setItem('appointments', JSON.stringify(mockAppointments));
       }
+      
+      const cachedPatients = localStorage.getItem('patients');
+      if (cachedPatients) {
+        setPatients(JSON.parse(cachedPatients));
+      } else {
+        setPatients(mockPatients);
+        localStorage.setItem('patients', JSON.stringify(mockPatients));
+      }
+
     } catch (error) {
-      console.error("Failed to access localStorage or parse appointments", error);
+      console.error("Failed to access localStorage or parse data", error);
       setAppointments(mockAppointments);
+      setPatients(mockPatients);
     }
   }, []);
 
@@ -100,6 +111,23 @@ export default function AppointmentsPage() {
       }
       return updatedAppointments;
     });
+  };
+
+  const handleSavePatient = (newPatientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>): Patient => {
+    const newPatient: Patient = {
+        ...newPatientData,
+        id: `PAT${String(patients.length + 1).padStart(3, '0')}`,
+        lastVisit: new Date().toISOString().split('T')[0],
+        avatarUrl: 'https://placehold.co/100x100.png',
+    };
+    const updatedPatients = [...patients, newPatient];
+    setPatients(updatedPatients);
+    try {
+        localStorage.setItem('patients', JSON.stringify(updatedPatients));
+    } catch (error) {
+        console.error("Failed to save patients to localStorage", error);
+    }
+    return newPatient;
   };
 
   return (
@@ -159,7 +187,9 @@ export default function AppointmentsPage() {
               <AppointmentForm
                 staff={staff}
                 appointments={appointments}
+                patients={patients}
                 onSave={handleSaveAppointment}
+                onSavePatient={handleSavePatient}
                 onClose={() => setIsDialogOpen(false)}
               />
             </DialogContent>
