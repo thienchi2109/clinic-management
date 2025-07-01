@@ -52,7 +52,7 @@ export default function AppointmentsPage() {
             <DialogTrigger asChild>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Thêm đặt lịch
+                Đặt lịch khám
               </Button>
             </DialogTrigger>
             <DialogContent>
