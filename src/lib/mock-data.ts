@@ -21,6 +21,10 @@ export const staff: Staff[] = [
     { id: 'STAFF004', name: 'Bs. Linh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-456-7890', email: 'linh.bs@clinic.com' },
     { id: 'STAFF005', name: 'Đd. Hạnh', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-567-8901', email: 'hanh.dd@clinic.com' },
     { id: 'STAFF006', name: 'Đd. Hoa', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-678-9012', email: 'hoa.dd@clinic.com' },
+    { id: 'STAFF007', name: 'Bs. An', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-789-0123', email: 'an.bs@clinic.com' },
+    { id: 'STAFF008', name: 'Bs. Bình', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-890-1234', email: 'binh.bs@clinic.com' },
+    { id: 'STAFF009', name: 'Đd. Chi', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-901-2345', email: 'chi.dd@clinic.com' },
+    { id: 'STAFF010', name: 'Đd. Dung', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-012-3456', email: 'dung.dd@clinic.com' },
 ];
 
 export const appointments: Appointment[] = [
@@ -32,6 +36,8 @@ export const appointments: Appointment[] = [
   { id: 'APP006', patientName: 'Bệnh nhân X', doctorName: 'Đd. Hoa', date: staticToday, startTime: '14:00', endTime: '15:00', status: 'Scheduled' },
   { id: 'APP007', patientName: 'Bệnh nhân Y', doctorName: 'Bs. Hải', date: staticToday, startTime: '11:00', endTime: '11:45', status: 'Completed' },
   { id: 'APP008', patientName: 'Sarah Connor', doctorName: 'Bs. Minh', date: '2024-08-01', startTime: '09:30', endTime: '10:00', status: 'Scheduled' },
+  { id: 'APP009', patientName: 'Bệnh nhân Z', doctorName: 'Bs. An', date: staticToday, startTime: '09:00', endTime: '09:30', status: 'Scheduled' },
+  { id: 'APP010', patientName: 'Bệnh nhân W', doctorName: 'Bs. Bình', date: staticToday, startTime: '13:00', endTime: '14:00', status: 'Scheduled' },
 ];
 
 export const medications: Medication[] = [
@@ -45,9 +51,9 @@ export const medications: Medication[] = [
 export const invoices: Invoice[] = [
   { id: 'INV001', patientName: 'John Doe', date: '2023-10-15', amount: 150.00, status: 'Paid' },
   { id: 'INV002', patientName: 'Jane Smith', date: '2023-11-01', amount: 75.50, status: 'Paid' },
-  { id: 'INV003', patientName: 'Emily Jones', date: '2023-11-20', amount: 200.00, status: 'Pending' },
-  { id: 'INV004', patientName: 'Michael Brown', date: '2023-12-05', amount: 310.75, status: 'Overdue' },
-  { id: 'INV005', patientName: 'Chris Wilson', date: '2024-01-02', amount: 50.00, status: 'Paid' },
+  { id: 'INV003', name: 'Emily Jones', date: '2023-11-20', amount: 200.00, status: 'Pending' },
+  { id: 'INV004', name: 'Michael Brown', date: '2023-12-05', amount: 310.75, status: 'Overdue' },
+  { id: 'INV005', name: 'Chris Wilson', date: '2024-01-02', amount: 50.00, status: 'Paid' },
 ];
 
 export const documents: PatientDocument[] = [
