@@ -28,6 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { formatDate } from '@/lib/utils';
 
 const getStatusVariant = (status: Invoice['status']) => {
   switch (status) {
@@ -56,7 +57,7 @@ const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
       <DialogHeader>
         <DialogTitle className="font-headline">Hóa đơn #{invoice.id}</DialogTitle>
         <DialogDescription>
-          Ngày: {invoice.date} | Trạng thái: {translateStatus(invoice.status)}
+          Ngày: {formatDate(invoice.date)} | Trạng thái: {translateStatus(invoice.status)}
         </DialogDescription>
       </DialogHeader>
       <div className="py-4 space-y-4">
@@ -137,7 +138,7 @@ export default function InvoicesPage() {
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">{invoice.id}</TableCell>
                   <TableCell>{invoice.patientName}</TableCell>
-                  <TableCell>{invoice.date}</TableCell>
+                  <TableCell>{formatDate(invoice.date)}</TableCell>
                   <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(invoice.status)}>

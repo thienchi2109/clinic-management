@@ -11,6 +11,7 @@ import { patients, documents } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FileText, UploadCloud, Bell } from 'lucide-react';
 import type { Patient } from '@/lib/types';
+import { formatDate } from '@/lib/utils';
 
 const translateGender = (gender: Patient['gender']) => {
     switch(gender) {
@@ -66,7 +67,7 @@ export default function PatientsPage() {
                 </Button>
             </CardContent>
             <CardFooter className="flex justify-between">
-                <p className="text-xs text-muted-foreground">Lần khám cuối: {patient.lastVisit}</p>
+                <p className="text-xs text-muted-foreground">Lần khám cuối: {formatDate(patient.lastVisit)}</p>
                 <Button variant="secondary" size="sm">
                   <Bell className="mr-2 h-4 w-4" />
                   Nhắc nhở

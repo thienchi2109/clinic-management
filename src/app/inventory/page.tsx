@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { medications } from '@/lib/mock-data';
 import { PlusCircle } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 const getExpiryStatus = (expiryDate: string) => {
   const today = new Date();
@@ -70,7 +71,7 @@ export default function InventoryPage() {
                   <TableRow key={med.id}>
                     <TableCell className="font-medium">{med.name}</TableCell>
                     <TableCell>{med.batchNo}</TableCell>
-                    <TableCell>{med.expiryDate}</TableCell>
+                    <TableCell>{formatDate(med.expiryDate)}</TableCell>
                     <TableCell>{med.stock}</TableCell>
                     <TableCell className="text-right">
                       <Badge variant={status.variant}>{status.text}</Badge>

@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { formatDate } from '@/lib/utils';
 
 const getStatusVariant = (status: Appointment['status']) => {
   switch (status) {
@@ -103,7 +104,7 @@ export default function AppointmentsPage() {
                     {appointment.patientName}
                   </TableCell>
                   <TableCell>{appointment.doctorName}</TableCell>
-                  <TableCell>{new Date(appointment.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{formatDate(appointment.date)}</TableCell>
                   <TableCell>{appointment.time}</TableCell>
                   <TableCell className="text-right">
                     <Badge variant={getStatusVariant(appointment.status)}>
