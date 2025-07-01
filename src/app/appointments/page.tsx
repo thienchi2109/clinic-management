@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { appointments as mockAppointments, staff } from '@/lib/mock-data';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
@@ -35,6 +35,16 @@ export default function AppointmentsPage() {
   const dailyAppointments = appointments.filter(
     (app) => app.date === selectedDateString
   );
+
+  const staffForDay = useMemo(() => {
+    const staffNamesOnSchedule = [
+      ...new Set(dailyAppointments.map((app) => app.doctorName)),
+    ];
+    if (staffNamesOnSchedule.length === 0) {
+      return [];
+    }
+    return staff.filter((s) => staffNamesOnSchedule.includes(s.name));
+  }, [dailyAppointments]);
 
   const handleSaveAppointment = (newAppointmentData: Omit<Appointment, 'id' | 'status'>) => {
     const newAppointment: Appointment = {
@@ -90,7 +100,7 @@ export default function AppointmentsPage() {
         </div>
       </div>
       <div className="flex-1 overflow-auto">
-        <DailyTimeline appointments={dailyAppointments} staff={staff} />
+        <DailyTimeline appointments={dailyAppointments} staff={staffForDay} />
       </div>
     </div>
   );

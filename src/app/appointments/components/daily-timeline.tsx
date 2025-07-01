@@ -3,6 +3,7 @@
 import type { Appointment, Staff } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { CalendarSearch } from 'lucide-react';
 
 // Helper function to convert 'HH:mm' to minutes since midnight
 const timeToMinutes = (time: string): number => {
@@ -34,6 +35,18 @@ export function DailyTimeline({
     const minutes = totalMinutes % 60;
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
   });
+
+  if (staff.length === 0) {
+    return (
+      <Card className="flex items-center justify-center h-full min-h-[400px]">
+        <CardContent className="text-center text-muted-foreground">
+          <CalendarSearch className="mx-auto h-12 w-12 mb-4" />
+          <p className="text-lg font-semibold">Không có lịch hẹn</p>
+          <p>Không có lịch hẹn nào được lên lịch cho ngày đã chọn.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="min-w-full w-max">
