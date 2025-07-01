@@ -61,9 +61,9 @@ export function DailyTimeline({
             >
                 {/* Time gutter with lines */}
                 <div className="sticky left-0 z-20 bg-card">
-                    <div className="h-12 border-b border-r"></div> {/* Header space */}
+                    <div className="h-10 border-b border-r"></div> {/* Header space */}
                     {timeSlots.map((time, i) => (
-                        <div key={time} className="h-12 border-b border-r flex items-start justify-center pt-1">
+                        <div key={time} className="h-10 border-b border-r flex items-start justify-center pt-1">
                             {i % 2 === 0 && <span className="text-xs text-muted-foreground -translate-y-1/2 bg-card px-1">{time}</span>}
                         </div>
                     ))}
@@ -72,15 +72,15 @@ export function DailyTimeline({
                 {/* Doctor columns */}
                 {staff.map(staffMember => (
                     <div key={staffMember.id} className="relative border-r">
-                        <div className="sticky top-0 z-10 h-12 border-b flex items-center justify-center font-semibold text-center p-2 bg-card">{staffMember.name}</div>
+                        <div className="sticky top-0 z-10 h-10 border-b flex items-center justify-center font-semibold text-center p-2 bg-card">{staffMember.name}</div>
                         {timeSlots.map((_, i) => (
-                            <div key={i} className="h-12 border-b"></div>
+                            <div key={i} className="h-10 border-b"></div>
                         ))}
                         {appointments.filter(a => a.doctorName === staffMember.name).map(appointment => {
                             const startMinutes = timeToMinutes(appointment.startTime);
                             const endMinutes = timeToMinutes(appointment.endTime);
-                            const topOffset = ((startMinutes - START_HOUR * 60) / 30) * 3.0; // 3.0rem is height of a 30-min slot
-                            const height = ((endMinutes - startMinutes) / 30) * 3.0;
+                            const topOffset = ((startMinutes - START_HOUR * 60) / 30) * 2.5; // 2.5rem is height of a 30-min slot
+                            const height = ((endMinutes - startMinutes) / 30) * 2.5;
                             const appointmentStaff = staff.find(s => s.name === appointment.doctorName);
                             
                             return (
@@ -89,7 +89,7 @@ export function DailyTimeline({
                                         <div
                                             className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow cursor-pointer hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary", getStatusClasses(appointment.status))}
                                             style={{
-                                                top: `calc(3rem + ${topOffset}rem)`, // 3rem is header height
+                                                top: `calc(2.5rem + ${topOffset}rem)`, // 2.5rem is header height
                                                 height: `${height}rem`,
                                             }}
                                             tabIndex={0}
