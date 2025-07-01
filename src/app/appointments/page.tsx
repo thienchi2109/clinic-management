@@ -23,41 +23,78 @@ import { Input } from '@/components/ui/input';
 
 export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>();
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
+  // Initialize with an empty array to prevent hydration mismatch, will be populated from localStorage.
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    // Set date only on the client-side to prevent hydration mismatch
+    // This effect runs only on the client to prevent hydration errors.
+    
+    // Set the initial date.
     setDate(new Date());
-  }, []);
+
+    // Load appointments from localStorage or fall back to mock data.
+    try {
+      const cachedAppointments = localStorage.getItem('appointments');
+      if (cachedAppointments) {
+        setAppointments(JSON.parse(cachedAppointments));
+      } else {
+        // If nothing in cache, use mock data and cache it for next time.
+        setAppointments(mockAppointments);
+        localStorage.setItem('appointments', JSON.stringify(mockAppointments));
+      }
+    } catch (error) {
+      console.error("Failed to access localStorage or parse appointments", error);
+      // Fallback to mock data if localStorage fails.
+      setAppointments(mockAppointments);
+    }
+  }, []); // Empty dependency array ensures it runs once on mount.
 
   const selectedDateString = date ? format(date, 'yyyy-MM-dd') : '';
 
-  const dailyAppointments = appointments
-    .filter((app) => app.date === selectedDateString)
-    .filter((app) =>
+  // Get all appointments for the selected date, before applying search filter.
+  const appointmentsForSelectedDate = useMemo(() =>
+    appointments.filter((app) => app.date === selectedDateString),
+    [appointments, selectedDateString]
+  );
+  
+  // Apply search filter to the day's appointments.
+  const dailyAppointments = useMemo(() =>
+    appointmentsForSelectedDate.filter((app) =>
       app.patientName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ),
+    [appointmentsForSelectedDate, searchTerm]
+  );
 
+  // Determine which staff to display based on all appointments for the day, so columns don't disappear when searching.
   const staffForDay = useMemo(() => {
     const staffNamesOnSchedule = [
-      ...new Set(dailyAppointments.map((app) => app.doctorName)),
+      ...new Set(appointmentsForSelectedDate.map((app) => app.doctorName)),
     ];
     if (staffNamesOnSchedule.length === 0) {
       return [];
     }
     return staff.filter((s) => staffNamesOnSchedule.includes(s.name));
-  }, [dailyAppointments]);
+  }, [appointmentsForSelectedDate]);
 
   const handleSaveAppointment = (newAppointmentData: Omit<Appointment, 'id' | 'status'>) => {
-    const newAppointment: Appointment = {
-        ...newAppointmentData,
-        id: `APP${String(appointments.length + 1).padStart(3, '0')}`,
-        status: 'Scheduled',
-    };
-    setAppointments(prev => [...prev, newAppointment]);
+    setAppointments(prevAppointments => {
+        const newAppointment: Appointment = {
+            ...newAppointmentData,
+            id: `APP${String(prevAppointments.length + 1).padStart(3, '0')}`,
+            status: 'Scheduled',
+        };
+        const updatedAppointments = [...prevAppointments, newAppointment];
+        try {
+            // Update localStorage whenever a new appointment is saved.
+            localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+        } catch (error) {
+            console.error("Failed to save appointments to localStorage", error);
+        }
+        return updatedAppointments;
+    });
   };
 
   return (
