@@ -40,47 +40,60 @@ const getStatusVariant = (status: Appointment['status']) => {
   }
 };
 
+const translateStatus = (status: Appointment['status']) => {
+  switch (status) {
+    case 'Scheduled':
+      return 'Đã lên lịch';
+    case 'Completed':
+      return 'Đã hoàn thành';
+    case 'Cancelled':
+      return 'Đã hủy';
+    default:
+      return status;
+  }
+};
+
 export default function AppointmentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-headline font-bold">Appointments</h1>
+        <h1 className="text-2xl font-headline font-bold">Lịch hẹn</h1>
         <Dialog>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              New Appointment
+              Tạo lịch hẹn mới
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Schedule New Appointment</DialogTitle>
+              <DialogTitle>Lên lịch hẹn mới</DialogTitle>
               <DialogDescription>
-                Fill in the details to schedule a new appointment.
+                Điền thông tin chi tiết để lên lịch hẹn mới.
               </DialogDescription>
             </DialogHeader>
             {/* Appointment Form would go here */}
-            <p className="text-center text-muted-foreground pt-4">Appointment form is under construction.</p>
+            <p className="text-center text-muted-foreground pt-4">Biểu mẫu tạo lịch hẹn đang được xây dựng.</p>
           </DialogContent>
         </Dialog>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Appointment List</CardTitle>
+          <CardTitle>Danh sách lịch hẹn</CardTitle>
           <CardDescription>
-            Manage and view all scheduled appointments.
+            Quản lý và xem tất cả các lịch hẹn đã đặt.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Patient</TableHead>
-                <TableHead>Doctor</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead className="text-right">Status</TableHead>
+                <TableHead>Bệnh nhân</TableHead>
+                <TableHead>Bác sĩ</TableHead>
+                <TableHead>Ngày</TableHead>
+                <TableHead>Thời gian</TableHead>
+                <TableHead className="text-right">Trạng thái</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -94,7 +107,7 @@ export default function AppointmentsPage() {
                   <TableCell>{appointment.time}</TableCell>
                   <TableCell className="text-right">
                     <Badge variant={getStatusVariant(appointment.status)}>
-                      {appointment.status}
+                      {translateStatus(appointment.status)}
                     </Badge>
                   </TableCell>
                 </TableRow>

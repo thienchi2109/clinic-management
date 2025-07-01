@@ -39,10 +39,10 @@ import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   symptoms: z.string().min(10, {
-    message: 'Symptoms must be at least 10 characters.',
+    message: 'Triệu chứng phải có ít nhất 10 ký tự.',
   }),
   medicalHistory: z.string().min(10, {
-    message: 'Medical history must be at least 10 characters.',
+    message: 'Tiền sử bệnh phải có ít nhất 10 ký tự.',
   }),
   examHistory: z.string().optional(),
 });
@@ -51,6 +51,15 @@ type AiOutput = {
   diagnosis: SuggestDiagnosisOutput;
   specialist: SuggestSpecialistOutput;
 };
+
+const translatePriority = (priority: string) => {
+    switch(priority.toLowerCase()){
+        case 'high': return 'Cao';
+        case 'medium': return 'Trung bình';
+        case 'low': return 'Thấp';
+        default: return priority;
+    }
+}
 
 export function AiAssistantClient() {
   const [output, setOutput] = useState<AiOutput | null>(null);
@@ -79,8 +88,8 @@ export function AiAssistantClient() {
       console.error('AI Assistant Error:', error);
       toast({
         variant: 'destructive',
-        title: 'An error occurred',
-        description: 'Failed to get suggestions from the AI assistant.',
+        title: 'Đã xảy ra lỗi',
+        description: 'Không thể nhận gợi ý từ trợ lý AI.',
       });
     } finally {
       setLoading(false);
@@ -92,10 +101,10 @@ export function AiAssistantClient() {
       <Card className="h-fit">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-headline">
-            <UserPlus /> Patient Information
+            <UserPlus /> Thông tin bệnh nhân
           </CardTitle>
           <CardDescription>
-            Enter patient details to get AI suggestions.
+            Nhập thông tin bệnh nhân để nhận gợi ý từ AI.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,10 +115,10 @@ export function AiAssistantClient() {
                 name="symptoms"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Symptoms</FormLabel>
+                    <FormLabel>Triệu chứng</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="e.g., persistent cough, fever, and shortness of breath for the last 5 days."
+                        placeholder="VD: ho dai dẳng, sốt, và khó thở trong 5 ngày gần đây."
                         rows={4}
                         {...field}
                       />
@@ -123,10 +132,10 @@ export function AiAssistantClient() {
                 name="medicalHistory"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Medical History</FormLabel>
+                    <FormLabel>Tiền sử bệnh</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="e.g., history of asthma, non-smoker, no known allergies."
+                        placeholder="VD: có tiền sử hen suyễn, không hút thuốc, không dị ứng."
                         rows={4}
                         {...field}
                       />
@@ -140,10 +149,10 @@ export function AiAssistantClient() {
                 name="examHistory"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Exam History (Optional)</FormLabel>
+                    <FormLabel>Lịch sử khám (Tùy chọn)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="e.g., previous chest X-ray showed minor inflammation."
+                        placeholder="VD: X-quang ngực trước đây cho thấy có viêm nhẹ."
                         rows={3}
                         {...field}
                       />
@@ -153,7 +162,7 @@ export function AiAssistantClient() {
                 )}
               />
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Analyzing...' : 'Get Suggestions'}
+                {loading ? 'Đang phân tích...' : 'Nhận gợi ý'}
                 <Bot className="ml-2 h-4 w-4" />
               </Button>
             </form>
@@ -165,10 +174,10 @@ export function AiAssistantClient() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-headline">
-              <Lightbulb /> AI Suggestions
+              <Lightbulb /> Gợi ý từ AI
             </CardTitle>
             <CardDescription>
-              Review the AI-generated diagnostic and referral suggestions.
+              Xem lại các gợi ý chẩn đoán và giới thiệu do AI tạo ra.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -188,14 +197,14 @@ export function AiAssistantClient() {
             )}
             {!loading && !output && (
                 <div className="text-center text-muted-foreground py-10">
-                    <p>Suggestions will appear here once you submit patient information.</p>
+                    <p>Gợi ý sẽ xuất hiện ở đây sau khi bạn gửi thông tin bệnh nhân.</p>
                 </div>
             )}
             {output && (
               <>
                 <div>
                   <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                    <Stethoscope /> Possible Diagnoses
+                    <Stethoscope /> Chẩn đoán có thể
                     <Badge
                       variant={
                         output.diagnosis.priority === 'high'
@@ -203,7 +212,7 @@ export function AiAssistantClient() {
                           : 'secondary'
                       }
                     >
-                      {output.diagnosis.priority} Priority
+                      Ưu tiên: {translatePriority(output.diagnosis.priority)}
                     </Badge>
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -217,14 +226,14 @@ export function AiAssistantClient() {
                 <Separator />
                 <div>
                   <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                    <UserPlus /> Suggested Specialists
+                    <UserPlus /> Chuyên khoa đề xuất
                   </h3>
                   <ul className="space-y-4">
                     {output.specialist.suggestedSpecialists.map((spec) => (
                       <li key={spec.department} className="p-3 border rounded-lg">
                         <div className="flex justify-between items-start">
                           <h4 className="font-semibold">{spec.department}</h4>
-                          <Badge>Priority: {spec.priority}</Badge>
+                          <Badge>Ưu tiên: {spec.priority}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
                           {spec.rationale}

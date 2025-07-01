@@ -5,9 +5,9 @@ export default function AiAssistantPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-headline font-bold">AI Diagnostic Assistant</h1>
+          <h1 className="text-2xl font-headline font-bold">Trợ lý chẩn đoán AI</h1>
           <p className="text-muted-foreground">
-            Get AI-powered suggestions for diagnoses and specialist referrals.
+            Nhận đề xuất chẩn đoán và giới thiệu chuyên khoa từ AI.
           </p>
         </div>
       </div>

@@ -42,35 +42,44 @@ const getStatusVariant = (status: Invoice['status']) => {
   }
 };
 
+const translateStatus = (status: Invoice['status']) => {
+    switch (status) {
+        case 'Paid': return 'Đã thanh toán';
+        case 'Pending': return 'Chờ thanh toán';
+        case 'Overdue': return 'Quá hạn';
+        default: return status;
+    }
+}
+
 const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
     <DialogContent className="sm:max-w-[625px]">
       <DialogHeader>
-        <DialogTitle className="font-headline">Invoice #{invoice.id}</DialogTitle>
+        <DialogTitle className="font-headline">Hóa đơn #{invoice.id}</DialogTitle>
         <DialogDescription>
-          Date: {invoice.date} | Status: {invoice.status}
+          Ngày: {invoice.date} | Trạng thái: {translateStatus(invoice.status)}
         </DialogDescription>
       </DialogHeader>
       <div className="py-4 space-y-4">
         <div className="p-4 border rounded-lg">
-            <h3 className="font-semibold">Patient: {invoice.patientName}</h3>
+            <h3 className="font-semibold">Bệnh nhân: {invoice.patientName}</h3>
             <p className="text-sm text-muted-foreground">ID: PAT001</p>
         </div>
         <div>
-            <h4 className="font-semibold mb-2">Items:</h4>
+            <h4 className="font-semibold mb-2">Các mục:</h4>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Service</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Dịch vụ</TableHead>
+                        <TableHead className="text-right">Thành tiền</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     <TableRow>
-                        <TableCell>Consultation Fee</TableCell>
+                        <TableCell>Phí tư vấn</TableCell>
                         <TableCell className="text-right">$100.00</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell>Medication</TableCell>
+                        <TableCell>Thuốc</TableCell>
                         <TableCell className="text-right">$50.00</TableCell>
                     </TableRow>
                 </TableBody>
@@ -78,7 +87,7 @@ const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
         </div>
         <div className="flex justify-end pt-4 border-t">
             <div className="text-right">
-                <p className="text-muted-foreground">Total</p>
+                <p className="text-muted-foreground">Tổng cộng</p>
                 <p className="text-2xl font-bold">${invoice.amount.toFixed(2)}</p>
             </div>
         </div>
@@ -86,7 +95,7 @@ const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
       <DialogFooter>
         <Button variant="outline" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
-            Print Invoice
+            In hóa đơn
         </Button>
       </DialogFooter>
     </DialogContent>
@@ -97,30 +106,30 @@ export default function InvoicesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-headline font-bold">Invoicing</h1>
+        <h1 className="text-2xl font-headline font-bold">Hóa đơn</h1>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Create Invoice
+          Tạo hóa đơn
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Invoice History</CardTitle>
+          <CardTitle>Lịch sử hóa đơn</CardTitle>
           <CardDescription>
-            View and manage all patient invoices.
+            Xem và quản lý tất cả hóa đơn của bệnh nhân.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Invoice ID</TableHead>
-                <TableHead>Patient</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead>Mã hóa đơn</TableHead>
+                <TableHead>Bệnh nhân</TableHead>
+                <TableHead>Ngày</TableHead>
+                <TableHead>Số tiền</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -132,13 +141,13 @@ export default function InvoicesPage() {
                   <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(invoice.status)}>
-                      {invoice.status}
+                      {translateStatus(invoice.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm">View</Button>
+                            <Button variant="ghost" size="sm">Xem</Button>
                         </DialogTrigger>
                         <InvoiceDialog invoice={invoice} />
                     </Dialog>

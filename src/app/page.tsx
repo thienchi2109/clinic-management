@@ -16,6 +16,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Activity, Calendar, Users, Pill } from 'lucide-react';
 import { appointments, patients, medications } from '@/lib/mock-data';
+import type { Patient } from '@/lib/types';
+
+const translateGender = (gender: Patient['gender']) => {
+    switch(gender) {
+        case 'Male': return 'Nam';
+        case 'Female': return 'Nữ';
+        case 'Other': return 'Khác';
+        default: return gender;
+    }
+}
 
 export default function Dashboard() {
   const today = new Date();
@@ -31,55 +41,55 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 md:gap-8">
-      <h1 className="text-2xl font-headline font-bold">Dashboard</h1>
+      <h1 className="text-2xl font-headline font-bold">Bảng điều khiển</h1>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng số bệnh nhân</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{patients.length}</div>
             <p className="text-xs text-muted-foreground">
-              +10% from last month
+              +10% so với tháng trước
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Appointments Today
+              Lịch hẹn hôm nay
             </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{todaysAppointments.length}</div>
             <p className="text-xs text-muted-foreground">
-              {appointments.filter(a => a.status === "Completed").length} completed
+              {appointments.filter(a => a.status === "Completed").length} hoàn thành
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+            <CardTitle className="text-sm font-medium">Sắp hết hạn</CardTitle>
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{expiringSoonCount}</div>
             <p className="text-xs text-muted-foreground">
-              Medications expiring in next 30 days
+              Thuốc hết hạn trong 30 ngày tới
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Cases</CardTitle>
+            <CardTitle className="text-sm font-medium">Ca đang hoạt động</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+57</div>
             <p className="text-xs text-muted-foreground">
-              +2 since last hour
+              +2 từ giờ trước
             </p>
           </CardContent>
         </Card>
@@ -88,9 +98,9 @@ export default function Dashboard() {
         <Card className="xl:col-span-2">
           <CardHeader className="flex flex-row items-center">
             <div className="grid gap-2">
-              <CardTitle>Recent Patients</CardTitle>
+              <CardTitle>Bệnh nhân gần đây</CardTitle>
               <CardDescription>
-                Overview of recently visited patients.
+                Tổng quan về các bệnh nhân đã khám gần đây.
               </CardDescription>
             </div>
           </CardHeader>
@@ -98,11 +108,11 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Patient</TableHead>
+                  <TableHead>Bệnh nhân</TableHead>
                   <TableHead className="hidden xl:table-column">
-                    Gender
+                    Giới tính
                   </TableHead>
-                  <TableHead className="text-right">Last Visit</TableHead>
+                  <TableHead className="text-right">Lần khám cuối</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -111,11 +121,11 @@ export default function Dashboard() {
                     <TableCell>
                       <div className="font-medium">{patient.name}</div>
                       <div className="hidden text-sm text-muted-foreground md:inline">
-                        Age: {patient.age}
+                        Tuổi: {patient.age}
                       </div>
                     </TableCell>
                     <TableCell className="hidden xl:table-column">
-                      {patient.gender}
+                      {translateGender(patient.gender)}
                     </TableCell>
                     <TableCell className="text-right">
                       {patient.lastVisit}
@@ -128,9 +138,9 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Today's Appointments</CardTitle>
+            <CardTitle>Lịch hẹn hôm nay</CardTitle>
             <CardDescription>
-              A list of appointments scheduled for today.
+              Danh sách các lịch hẹn trong hôm nay.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
@@ -142,7 +152,7 @@ export default function Dashboard() {
                       {appointment.patientName}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      with {appointment.doctorName}
+                      với {appointment.doctorName}
                     </p>
                   </div>
                   <div className="ml-auto font-medium">
@@ -154,7 +164,7 @@ export default function Dashboard() {
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                No appointments scheduled for today.
+                Không có lịch hẹn nào cho hôm nay.
               </p>
             )}
           </CardContent>

@@ -4,8 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { MainLayout } from '@/components/layout/main-layout';
 
 export const metadata: Metadata = {
-  title: 'Clinic Management',
-  description: 'Efficiently manage your clinic operations.',
+  title: 'Quản lý phòng khám',
+  description: 'Quản lý hoạt động phòng khám hiệu quả.',
 };
 
 export default function RootLayout({

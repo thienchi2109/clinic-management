@@ -18,12 +18,12 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/appointments', label: 'Appointments', icon: Calendar },
-  { href: '/patients', label: 'Patients', icon: Users },
-  { href: '/inventory', label: 'Inventory', icon: Pill },
-  { href: '/invoices', label: 'Invoices', icon: FileText },
-  { href: '/ai-assistant', label: 'AI Assistant', icon: Bot },
+  { href: '/', label: 'Bảng điều khiển', icon: LayoutDashboard },
+  { href: '/appointments', label: 'Lịch hẹn', icon: Calendar },
+  { href: '/patients', label: 'Bệnh nhân', icon: Users },
+  { href: '/inventory', label: 'Kho thuốc', icon: Pill },
+  { href: '/invoices', label: 'Hóa đơn', icon: FileText },
+  { href: '/ai-assistant', label: 'Trợ lý AI', icon: Bot },
 ];
 
 export function SidebarNav() {

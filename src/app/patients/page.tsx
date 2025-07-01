@@ -10,15 +10,25 @@ import { Button } from '@/components/ui/button';
 import { patients, documents } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FileText, UploadCloud, Bell } from 'lucide-react';
+import type { Patient } from '@/lib/types';
+
+const translateGender = (gender: Patient['gender']) => {
+    switch(gender) {
+        case 'Male': return 'Nam';
+        case 'Female': return 'Nữ';
+        case 'Other': return 'Khác';
+        default: return gender;
+    }
+}
 
 export default function PatientsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-headline font-bold">Patient Records</h1>
+        <h1 className="text-2xl font-headline font-bold">Hồ sơ bệnh nhân</h1>
         <Button>
           <UploadCloud className="mr-2 h-4 w-4" />
-          Add New Patient
+          Thêm bệnh nhân mới
         </Button>
       </div>
 
@@ -33,12 +43,12 @@ export default function PatientsPage() {
               <div className="grid gap-1">
                 <CardTitle className="font-headline">{patient.name}</CardTitle>
                 <CardDescription>
-                  {patient.age} years old, {patient.gender}
+                  {patient.age} tuổi, {translateGender(patient.gender)}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent>
-                <h4 className="text-sm font-semibold mb-2 text-primary">Documents</h4>
+                <h4 className="text-sm font-semibold mb-2 text-primary">Tài liệu</h4>
                 <div className="space-y-2">
                     {documents.slice(0, 2).map(doc => (
                         <div key={doc.id} className="flex items-center justify-between p-2 rounded-md border">
@@ -46,20 +56,20 @@ export default function PatientsPage() {
                                 <FileText className="h-5 w-5 text-muted-foreground" />
                                 <span className="text-sm font-medium">{doc.name}</span>
                             </div>
-                            <Button variant="ghost" size="sm">View</Button>
+                            <Button variant="ghost" size="sm">Xem</Button>
                         </div>
                     ))}
                 </div>
                  <Button variant="outline" className="w-full mt-4">
                     <UploadCloud className="mr-2 h-4 w-4" />
-                    Upload Document
+                    Tải lên tài liệu
                 </Button>
             </CardContent>
             <CardFooter className="flex justify-between">
-                <p className="text-xs text-muted-foreground">Last visit: {patient.lastVisit}</p>
+                <p className="text-xs text-muted-foreground">Lần khám cuối: {patient.lastVisit}</p>
                 <Button variant="secondary" size="sm">
                   <Bell className="mr-2 h-4 w-4" />
-                  Remind
+                  Nhắc nhở
                 </Button>
             </CardFooter>
           </Card>

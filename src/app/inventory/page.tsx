@@ -26,41 +26,41 @@ const getExpiryStatus = (expiryDate: string) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays < 0) {
-    return { text: 'Expired', variant: 'destructive' as const };
+    return { text: 'Đã hết hạn', variant: 'destructive' as const };
   }
   if (diffDays <= 30) {
-    return { text: 'Expires Soon', variant: 'secondary' as const };
+    return { text: 'Sắp hết hạn', variant: 'secondary' as const };
   }
-  return { text: 'In Stock', variant: 'default' as const };
+  return { text: 'Còn hàng', variant: 'default' as const };
 };
 
 export default function InventoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-headline font-bold">Medication Inventory</h1>
+        <h1 className="text-2xl font-headline font-bold">Kho thuốc</h1>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Medication
+          Thêm thuốc
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Stock Levels</CardTitle>
+          <CardTitle>Mức tồn kho</CardTitle>
           <CardDescription>
-            Monitor medication stock and expiry dates.
+            Theo dõi tồn kho và hạn sử dụng của thuốc.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Medication</TableHead>
-                <TableHead>Batch No.</TableHead>
-                <TableHead>Expiry Date</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead className="text-right">Status</TableHead>
+                <TableHead>Thuốc</TableHead>
+                <TableHead>Số lô</TableHead>
+                <TableHead>Ngày hết hạn</TableHead>
+                <TableHead>Tồn kho</TableHead>
+                <TableHead className="text-right">Trạng thái</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
