@@ -32,6 +32,8 @@ export function PatientForm({ onSave, onClose }: PatientFormProps) {
             name: '',
             address: '',
             phone: '',
+            birthYear: '' as any, // Initialize as empty string to be a controlled component
+            gender: undefined,
         },
     });
 
@@ -61,7 +63,7 @@ export function PatientForm({ onSave, onClose }: PatientFormProps) {
                     <FormField control={form.control} name="gender" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Giới tính</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Chọn giới tính" /></SelectTrigger></FormControl>
                                 <SelectContent>
                                     <SelectItem value="Male">Nam</SelectItem>
