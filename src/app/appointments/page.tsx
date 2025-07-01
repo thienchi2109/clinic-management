@@ -155,7 +155,7 @@ export default function AppointmentsPage() {
         <DailyTimeline appointments={dailyAppointments} staff={staffForDay} />
       </TabsContent>
       <TabsContent value="table" className="flex-1 overflow-auto">
-        <AppointmentsTable appointments={dailyAppointments} />
+        <AppointmentsTable appointments={dailyAppointments} staff={staff} />
       </TabsContent>
     </Tabs>
   );

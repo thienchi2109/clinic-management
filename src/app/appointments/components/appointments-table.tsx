@@ -1,6 +1,6 @@
 'use client';
 
-import type { Appointment } from '@/lib/types';
+import type { Appointment, Staff } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -12,6 +12,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { CalendarSearch } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AppointmentDetail } from './appointment-detail';
 
 const getStatusVariant = (status: Appointment['status']) => {
   switch (status) {
@@ -39,7 +41,7 @@ const translateStatus = (status: Appointment['status']) => {
   }
 };
 
-export function AppointmentsTable({ appointments }: { appointments: Appointment[] }) {
+export function AppointmentsTable({ appointments, staff }: { appointments: Appointment[], staff: Staff[] }) {
   if (appointments.length === 0) {
     return (
       <Card>
@@ -64,24 +66,35 @@ export function AppointmentsTable({ appointments }: { appointments: Appointment[
             <TableHead className="w-[120px]">Thời gian</TableHead>
             <TableHead>Bệnh nhân</TableHead>
             <TableHead>Bác sĩ/Điều dưỡng</TableHead>
-            <TableHead className="text-right">Trạng thái</TableHead>
+            <TableHead>Trạng thái</TableHead>
+            <TableHead className="text-right">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedAppointments.map((appointment) => (
-            <TableRow key={appointment.id}>
-              <TableCell className="font-medium">
-                {appointment.startTime} - {appointment.endTime}
-              </TableCell>
-              <TableCell>{appointment.patientName}</TableCell>
-              <TableCell>{appointment.doctorName}</TableCell>
-              <TableCell className="text-right">
-                <Badge variant={getStatusVariant(appointment.status)}>
-                  {translateStatus(appointment.status)}
-                </Badge>
-              </TableCell>
-            </TableRow>
-          ))}
+          {sortedAppointments.map((appointment) => {
+            const staffMember = staff.find(s => s.name === appointment.doctorName);
+            return (
+              <TableRow key={appointment.id}>
+                <TableCell className="font-medium">
+                  {appointment.startTime} - {appointment.endTime}
+                </TableCell>
+                <TableCell>{appointment.patientName}</TableCell>
+                <TableCell>{appointment.doctorName}</TableCell>
+                <TableCell>
+                  <Badge variant={getStatusVariant(appointment.status)}>
+                    {translateStatus(appointment.status)}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                    <AppointmentDetail
+                        appointment={appointment}
+                        staffMember={staffMember}
+                        trigger={<Button variant="ghost" size="sm">Xem</Button>}
+                    />
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </Card>

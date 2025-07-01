@@ -4,6 +4,7 @@ import type { Appointment, Staff } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { CalendarSearch } from 'lucide-react';
+import { AppointmentDetail } from './appointment-detail';
 
 // Helper function to convert 'HH:mm' to minutes since midnight
 const timeToMinutes = (time: string): number => {
@@ -79,18 +80,27 @@ export function DailyTimeline({
                             const endMinutes = timeToMinutes(appointment.endTime);
                             const topOffset = ((startMinutes - START_HOUR * 60) / 30) * 3.5; // 3.5rem is height of a 30-min slot
                             const height = ((endMinutes - startMinutes) / 30) * 3.5;
+                            const appointmentStaff = staff.find(s => s.name === appointment.doctorName);
                             
                             return (
-                                <div key={appointment.id}
-                                    className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow", getStatusClasses(appointment.status))}
-                                    style={{
-                                        top: `calc(3rem + ${topOffset}rem)`, // 3rem is header height
-                                        height: `${height}rem`,
-                                    }}
-                                >
-                                    <p className="font-semibold truncate">{appointment.patientName}</p>
-                                    <p>{appointment.startTime} - {appointment.endTime}</p>
-                                </div>
+                                <AppointmentDetail
+                                    key={appointment.id}
+                                    appointment={appointment}
+                                    staffMember={appointmentStaff}
+                                    trigger={
+                                        <div
+                                            className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow cursor-pointer hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary", getStatusClasses(appointment.status))}
+                                            style={{
+                                                top: `calc(3rem + ${topOffset}rem)`, // 3rem is header height
+                                                height: `${height}rem`,
+                                            }}
+                                            tabIndex={0}
+                                        >
+                                            <p className="font-semibold truncate">{appointment.patientName}</p>
+                                            <p>{appointment.startTime} - {appointment.endTime}</p>
+                                        </div>
+                                    }
+                                />
                             )
                         })}
                     </div>
