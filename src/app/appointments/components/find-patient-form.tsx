@@ -1,22 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronsUpDown, UserPlus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandInput,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PatientForm } from '@/app/patients/components/patient-form';
 import type { Patient } from '@/lib/types';
 
@@ -37,13 +24,12 @@ interface FindPatientFormProps {
 }
 
 export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNewPatient, onClose }: FindPatientFormProps) {
-  const [open, setOpen] = React.useState(false);
-  const [selectedPatientId, setSelectedPatientId] = React.useState('');
+  const [selectedPatientId, setSelectedPatientId] = React.useState<string | undefined>();
   const [isNewPatientDialogOpen, setIsNewPatientDialogOpen] = React.useState(false);
   const [error, setError] = React.useState('');
 
   const availablePatients = patients.filter(p => !walkInQueue.some(q => q.id === p.id));
-  const selectedPatient = availablePatients.find(p => p.id === selectedPatientId);
+  const selectedPatient = patients.find(p => p.id === selectedPatientId);
 
   const handleAddToQueue = () => {
     if (selectedPatient) {
@@ -68,44 +54,22 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
     <div className="py-4 space-y-4">
       <div className="grid gap-4">
         <div className="space-y-1.5">
-          <Label htmlFor='patient-search-combobox'>Tìm bệnh nhân hiện có</Label>
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                id='patient-search-combobox'
-                variant="outline"
-                role="combobox"
-                className="w-full justify-between mt-1"
-              >
-                {selectedPatient ? selectedPatient.name : "Chọn bệnh nhân..."}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-              <Command>
-                <CommandInput placeholder="Tìm bệnh nhân theo tên..." />
-                <CommandList>
-                  <CommandEmpty>Không tìm thấy bệnh nhân.</CommandEmpty>
-                  <CommandGroup>
-                    {availablePatients.map((patient) => (
-                      <CommandItem
-                        key={patient.id}
-                        value={patient.name}
-                        onSelect={() => {
-                          setSelectedPatientId(patient.id);
-                          setError('');
-                          setOpen(false);
-                        }}
-                      >
-                        <Check className={cn("mr-2 h-4 w-4", selectedPatientId === patient.id ? "opacity-100" : "opacity-0")} />
-                        {patient.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <Label htmlFor='patient-select'>Tìm bệnh nhân hiện có</Label>
+          <Select value={selectedPatientId} onValueChange={(value) => {
+            setSelectedPatientId(value);
+            setError('');
+          }}>
+            <SelectTrigger id="patient-select">
+              <SelectValue placeholder="Chọn một bệnh nhân" />
+            </SelectTrigger>
+            <SelectContent>
+              {availablePatients.map((patient) => (
+                <SelectItem key={patient.id} value={patient.id}>
+                  {patient.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {error && <p className="text-sm font-medium text-destructive">{error}</p>}
         </div>
         <Button onClick={handleAddToQueue} disabled={!selectedPatient}>
