@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { appointments, doctors } from '@/lib/mock-data';
+import { appointments, staff } from '@/lib/mock-data';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import {
   Dialog,
@@ -21,7 +21,7 @@ import { format } from 'date-fns';
 export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
-  const selectedDateString = date ? format(date, 'yyyy-MM-dd') : undefined;
+  const selectedDateString = date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
 
   const dailyAppointments = appointments.filter(
     (app) => app.date === selectedDateString
@@ -70,7 +70,7 @@ export default function AppointmentsPage() {
         </div>
       </div>
       <div className="flex-1 overflow-auto">
-        <DailyTimeline appointments={dailyAppointments} doctors={doctors} />
+        <DailyTimeline appointments={dailyAppointments} staff={staff} />
       </div>
     </div>
   );

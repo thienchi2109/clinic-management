@@ -1,4 +1,4 @@
-import { Patient, Appointment, Medication, Invoice, PatientDocument, Doctor } from './types';
+import { Patient, Appointment, Medication, Invoice, PatientDocument, Staff } from './types';
 
 // Hardcode dates to prevent hydration errors from `new Date()`
 const staticToday = '2024-07-30';
@@ -14,13 +14,13 @@ export const patients: Patient[] = [
   { id: 'PAT005', name: 'Chris Wilson', age: 41, gender: 'Male', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png' },
 ];
 
-export const doctors: Doctor[] = [
-    { id: 'DOC001', name: 'Bs. Minh' },
-    { id: 'DOC002', name: 'Bs. Hải' },
-    { id: 'DOC003', name: 'Bs. Hoài' },
-    { id: 'DOC004', name: 'Bs. Linh' },
-    { id: 'DOC005', name: 'Y tá. Hạnh' },
-    { id: 'DOC006', name: 'Y tá. Hoa' },
+export const staff: Staff[] = [
+    { id: 'STAFF001', name: 'Bs. Minh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-123-4567', email: 'minh.bs@clinic.com' },
+    { id: 'STAFF002', name: 'Bs. Hải', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-234-5678', email: 'hai.bs@clinic.com' },
+    { id: 'STAFF003', name: 'Bs. Hoài', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-345-6789', email: 'hoai.bs@clinic.com' },
+    { id: 'STAFF004', name: 'Bs. Linh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-456-7890', email: 'linh.bs@clinic.com' },
+    { id: 'STAFF005', name: 'Đd. Hạnh', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-567-8901', email: 'hanh.dd@clinic.com' },
+    { id: 'STAFF006', name: 'Đd. Hoa', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-678-9012', email: 'hoa.dd@clinic.com' },
 ];
 
 export const appointments: Appointment[] = [
@@ -28,8 +28,8 @@ export const appointments: Appointment[] = [
   { id: 'APP002', patientName: 'Chị Hoa', doctorName: 'Bs. Minh', date: staticToday, startTime: '08:00', endTime: '08:45', status: 'Completed' },
   { id: 'APP003', patientName: 'Anh Mạnh', doctorName: 'Bs. Hoài', date: staticToday, startTime: '08:30', endTime: '09:00', status: 'Scheduled' },
   { id: 'APP004', patientName: 'Chị Mận', doctorName: 'Bs. Linh', date: staticToday, startTime: '09:15', endTime: '10:15', status: 'Cancelled' },
-  { id: 'APP005', patientName: 'Chị Nhung', doctorName: 'Y tá. Hạnh', date: staticToday, startTime: '10:30', endTime: '11:15', status: 'Scheduled' },
-  { id: 'APP006', patientName: 'Bệnh nhân X', doctorName: 'Y tá. Hoa', date: staticToday, startTime: '14:00', endTime: '15:00', status: 'Scheduled' },
+  { id: 'APP005', patientName: 'Chị Nhung', doctorName: 'Đd. Hạnh', date: staticToday, startTime: '10:30', endTime: '11:15', status: 'Scheduled' },
+  { id: 'APP006', patientName: 'Bệnh nhân X', doctorName: 'Đd. Hoa', date: staticToday, startTime: '14:00', endTime: '15:00', status: 'Scheduled' },
   { id: 'APP007', patientName: 'Bệnh nhân Y', doctorName: 'Bs. Hải', date: staticToday, startTime: '11:00', endTime: '11:45', status: 'Completed' },
   { id: 'APP008', patientName: 'Sarah Connor', doctorName: 'Bs. Minh', date: '2024-08-01', startTime: '09:30', endTime: '10:00', status: 'Scheduled' },
 ];

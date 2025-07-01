@@ -41,7 +41,11 @@ export interface PatientDocument {
   url: string;
 }
 
-export interface Doctor {
+export interface Staff {
   id: string;
   name: string;
+  role: 'Bác sĩ' | 'Điều dưỡng';
+  avatarUrl: string;
+  phone: string;
+  email: string;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Appointment, Doctor } from '@/lib/types';
+import type { Appointment, Staff } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -21,10 +21,10 @@ const getStatusClasses = (status: Appointment['status']) => {
 
 export function DailyTimeline({
   appointments,
-  doctors,
+  staff,
 }: {
   appointments: Appointment[];
-  doctors: Doctor[];
+  staff: Staff[];
 }) {
   const START_HOUR = 7;
   const END_HOUR = 18;
@@ -41,7 +41,7 @@ export function DailyTimeline({
             <div
                 className="grid relative"
                 style={{
-                    gridTemplateColumns: `4rem repeat(${doctors.length}, minmax(140px, 1fr))`,
+                    gridTemplateColumns: `4rem repeat(${staff.length}, minmax(140px, 1fr))`,
                 }}
             >
                 {/* Time gutter with lines */}
@@ -55,13 +55,13 @@ export function DailyTimeline({
                 </div>
 
                 {/* Doctor columns */}
-                {doctors.map(doctor => (
-                    <div key={doctor.id} className="relative border-r">
-                        <div className="sticky top-0 z-10 h-12 border-b flex items-center justify-center font-semibold text-center p-2 bg-card">{doctor.name}</div>
+                {staff.map(staffMember => (
+                    <div key={staffMember.id} className="relative border-r">
+                        <div className="sticky top-0 z-10 h-12 border-b flex items-center justify-center font-semibold text-center p-2 bg-card">{staffMember.name}</div>
                         {timeSlots.map((_, i) => (
                             <div key={i} className="h-14 border-b"></div>
                         ))}
-                        {appointments.filter(a => a.doctorName === doctor.name).map(appointment => {
+                        {appointments.filter(a => a.doctorName === staffMember.name).map(appointment => {
                             const startMinutes = timeToMinutes(appointment.startTime);
                             const endMinutes = timeToMinutes(appointment.endTime);
                             const topOffset = ((startMinutes - START_HOUR * 60) / 30) * 3.5; // 3.5rem is height of a 30-min slot
