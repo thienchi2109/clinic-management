@@ -12,7 +12,8 @@ export interface Appointment {
   patientName: string;
   doctorName: string;
   date: string;
-  time: string;
+  startTime: string;
+  endTime: string;
   status: 'Scheduled' | 'Completed' | 'Cancelled';
 }
 
@@ -38,4 +39,9 @@ export interface PatientDocument {
   type: 'Ultrasound' | 'X-Ray' | 'Blood Test' | 'Prescription';
   uploadDate: string;
   url: string;
+}
+
+export interface Doctor {
+  id: string;
+  name: string;
 }

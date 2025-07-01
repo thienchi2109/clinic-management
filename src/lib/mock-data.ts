@@ -1,4 +1,4 @@
-import { Patient, Appointment, Medication, Invoice, PatientDocument } from './types';
+import { Patient, Appointment, Medication, Invoice, PatientDocument, Doctor } from './types';
 
 // Hardcode dates to prevent hydration errors from `new Date()`
 const staticToday = '2024-07-30';
@@ -14,12 +14,24 @@ export const patients: Patient[] = [
   { id: 'PAT005', name: 'Chris Wilson', age: 41, gender: 'Male', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png' },
 ];
 
+export const doctors: Doctor[] = [
+    { id: 'DOC001', name: 'Bs. Minh' },
+    { id: 'DOC002', name: 'Bs. Hải' },
+    { id: 'DOC003', name: 'Bs. Hoài' },
+    { id: 'DOC004', name: 'Bs. Linh' },
+    { id: 'DOC005', name: 'Y tá. Hạnh' },
+    { id: 'DOC006', name: 'Y tá. Hoa' },
+];
+
 export const appointments: Appointment[] = [
-  { id: 'APP001', patientName: 'John Doe', doctorName: 'Dr. Adams', date: staticToday, time: '09:00 AM', status: 'Scheduled' },
-  { id: 'APP002', patientName: 'Jane Smith', doctorName: 'Dr. Carter', date: staticToday, time: '10:30 AM', status: 'Scheduled' },
-  { id: 'APP003', patientName: 'Emily Jones', doctorName: 'Dr. Adams', date: staticToday, time: '11:15 AM', status: 'Completed' },
-  { id: 'APP004', patientName: 'Robert Paulson', doctorName: 'Dr. Shaw', date: '2024-06-28', time: '02:00 PM', status: 'Cancelled' },
-  { id: 'APP005', patientName: 'Sarah Connor', doctorName: 'Dr. Carter', date: '2024-07-01', time: '09:30 AM', status: 'Scheduled' },
+  { id: 'APP001', patientName: 'Anh Thắng', doctorName: 'Bs. Hải', date: staticToday, startTime: '07:00', endTime: '07:30', status: 'Scheduled' },
+  { id: 'APP002', patientName: 'Chị Hoa', doctorName: 'Bs. Minh', date: staticToday, startTime: '08:00', endTime: '08:45', status: 'Completed' },
+  { id: 'APP003', patientName: 'Anh Mạnh', doctorName: 'Bs. Hoài', date: staticToday, startTime: '08:30', endTime: '09:00', status: 'Scheduled' },
+  { id: 'APP004', patientName: 'Chị Mận', doctorName: 'Bs. Linh', date: staticToday, startTime: '09:15', endTime: '10:15', status: 'Cancelled' },
+  { id: 'APP005', patientName: 'Chị Nhung', doctorName: 'Y tá. Hạnh', date: staticToday, startTime: '10:30', endTime: '11:15', status: 'Scheduled' },
+  { id: 'APP006', patientName: 'Bệnh nhân X', doctorName: 'Y tá. Hoa', date: staticToday, startTime: '14:00', endTime: '15:00', status: 'Scheduled' },
+  { id: 'APP007', patientName: 'Bệnh nhân Y', doctorName: 'Bs. Hải', date: staticToday, startTime: '11:00', endTime: '11:45', status: 'Completed' },
+  { id: 'APP008', patientName: 'Sarah Connor', doctorName: 'Bs. Minh', date: '2024-08-01', startTime: '09:30', endTime: '10:00', status: 'Scheduled' },
 ];
 
 export const medications: Medication[] = [
