@@ -36,7 +36,7 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
   
   const filteredPatients = React.useMemo(() => {
     if (!searchTerm) {
-      return availablePatients;
+      return [];
     }
     return availablePatients.filter(patient =>
       patient.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -79,7 +79,7 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
         
         <ScrollArea className="h-[200px] w-full rounded-md border">
             <div className="p-2">
-                {filteredPatients.length === 0 ? (
+                {searchTerm && filteredPatients.length === 0 ? (
                     <p className="text-center text-sm text-muted-foreground p-4">Không tìm thấy bệnh nhân.</p>
                 ) : (
                     filteredPatients.map((patient) => (
