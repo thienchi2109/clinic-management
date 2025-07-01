@@ -30,7 +30,7 @@ export default function Dashboard() {
   }).length;
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+    <div className="flex flex-1 flex-col gap-4 md:gap-8">
       <h1 className="text-2xl font-headline font-bold">Dashboard</h1>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
@@ -160,6 +160,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-    </main>
+    </div>
   );
 }

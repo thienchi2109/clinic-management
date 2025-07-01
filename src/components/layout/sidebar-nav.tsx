@@ -7,8 +7,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
-  SidebarTrigger,
   SidebarContent,
 } from '@/components/ui/sidebar';
 import {
@@ -19,18 +17,7 @@ import {
   FileText,
   Bot,
   Stethoscope,
-  LogOut,
-  Settings,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '../ui/button';
 
 const navItems = [
@@ -48,18 +35,15 @@ export function SidebarNav() {
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
-              <Link href="/">
-                <Stethoscope className="h-6 w-6" />
-              </Link>
-            </Button>
-            <h1 className="whitespace-nowrap text-lg font-headline font-semibold group-data-[collapsible=icon]:hidden">
-              Clinic Management
-            </h1>
-          </div>
-          <SidebarTrigger />
+        <div className="flex items-center gap-2">
+          <Button asChild variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
+            <Link href="/">
+              <Stethoscope className="h-6 w-6" />
+            </Link>
+          </Button>
+          <h1 className="whitespace-nowrap text-lg font-headline font-semibold group-data-[collapsible=icon]:hidden">
+            Clinic Management
+          </h1>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
@@ -80,37 +64,6 @@ export function SidebarNav() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="flex cursor-pointer items-center gap-3 rounded-md p-2 transition-colors hover:bg-sidebar-accent">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://placehold.co/100x100.png" alt="@dr-smith" data-ai-hint="doctor avatar" />
-                <AvatarFallback>DS</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col overflow-hidden text-sm group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-medium">Dr. Smith</span>
-                <span className="truncate text-sidebar-foreground/70">
-                  dr.smith@clinic.com
-                </span>
-              </div>
-            </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarFooter>
     </>
   );
 }
