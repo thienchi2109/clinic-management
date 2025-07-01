@@ -22,7 +22,7 @@ import type { Appointment, Patient } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentsTable } from './components/appointments-table';
-import { PatientForm } from '../patients/components/patient-form';
+import { FindPatientForm } from './components/find-patient-form';
 import {
   Card,
   CardContent,
@@ -159,6 +159,15 @@ export default function AppointmentsPage() {
     return newPatient;
   };
 
+  const handleAddToWalkInQueue = (patient: Patient) => {
+    setWalkInQueue(prev => {
+        if (prev.some(p => p.id === patient.id)) {
+            return prev;
+        }
+        return [...prev, patient];
+    });
+  };
+
   return (
     <div className="space-y-8">
       <Tabs defaultValue="timeline" className="space-y-4 flex flex-col h-full">
@@ -252,16 +261,15 @@ export default function AppointmentsPage() {
                 <DialogHeader>
                   <DialogTitle>Thêm bệnh nhân vào hàng chờ</DialogTitle>
                   <DialogDescription>
-                    Tạo hồ sơ mới cho bệnh nhân vãng lai. Bệnh nhân sẽ được thêm vào danh sách chung.
+                    Tìm bệnh nhân đã có hoặc tạo hồ sơ mới để thêm vào hàng chờ.
                   </DialogDescription>
                 </DialogHeader>
-                <PatientForm
-                  onSave={(patientData) => {
-                    const newPatient = handleSavePatient(patientData);
-                    setWalkInQueue(prev => [...prev, newPatient]);
-                    setIsWalkInDialogOpen(false);
-                  }}
-                  onClose={() => setIsWalkInDialogOpen(false)}
+                 <FindPatientForm
+                    patients={patients}
+                    walkInQueue={walkInQueue}
+                    onAddToQueue={handleAddToWalkInQueue}
+                    onSaveNewPatient={handleSavePatient}
+                    onClose={() => setIsWalkInDialogOpen(false)}
                 />
               </DialogContent>
             </Dialog>
