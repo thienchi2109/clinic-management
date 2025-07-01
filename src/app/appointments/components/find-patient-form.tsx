@@ -80,7 +80,7 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
               >
                 {selectedPatientId
                   ? availablePatients.find((patient) => patient.id === selectedPatientId)?.name
-                  : "Chọn một bệnh nhân..."}
+                  : "Tìm hoặc chọn bệnh nhân..."}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
