@@ -157,7 +157,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="ml-auto font-medium">
-                    <Badge variant={appointment.status === 'Scheduled' ? 'default' : 'secondary'} className='bg-primary/20 text-primary-foreground hover:bg-primary/30'>
+                    <Badge variant={appointment.status === 'Scheduled' ? 'default' : 'secondary'}>
                       {appointment.time}
                     </Badge>
                   </div>
