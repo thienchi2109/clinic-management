@@ -32,7 +32,7 @@ const translateGender = (gender: Patient['gender']) => {
 export default function Dashboard() {
   const today = new Date('2024-07-30'); // Use static date to match mock data and prevent hydration errors
   const todaysAppointments = appointments.filter(
-    (app) => new Date(app.date).toDateString() === today.toDateString()
+    (app) => app.date === '2024-07-30'
   );
   const expiringSoonCount = medications.filter(med => {
     const expiry = new Date(med.expiryDate);
@@ -158,8 +158,8 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="ml-auto font-medium">
-                    <Badge variant="default">
-                      {appointment.time}
+                    <Badge variant="secondary">
+                      {appointment.startTime}
                     </Badge>
                   </div>
                 </div>
