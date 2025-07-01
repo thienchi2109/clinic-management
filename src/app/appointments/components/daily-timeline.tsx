@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { CalendarSearch } from 'lucide-react';
 import { AppointmentDetail } from './appointment-detail';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
 // Helper function to convert 'HH:mm' to minutes since midnight
 const timeToMinutes = (time: string): number => {
@@ -83,11 +84,8 @@ export function DailyTimeline({
                             const appointmentStaff = staff.find(s => s.name === appointment.doctorName);
                             
                             return (
-                                <AppointmentDetail
-                                    key={appointment.id}
-                                    appointment={appointment}
-                                    staffMember={appointmentStaff}
-                                    trigger={
+                                <Dialog key={appointment.id}>
+                                    <DialogTrigger asChild>
                                         <div
                                             className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow cursor-pointer hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary", getStatusClasses(appointment.status))}
                                             style={{
@@ -99,8 +97,9 @@ export function DailyTimeline({
                                             <p className="font-semibold truncate">{appointment.patientName}</p>
                                             <p>{appointment.startTime} - {appointment.endTime}</p>
                                         </div>
-                                    }
-                                />
+                                    </DialogTrigger>
+                                    <AppointmentDetail appointment={appointment} staffMember={appointmentStaff} />
+                                </Dialog>
                             )
                         })}
                     </div>

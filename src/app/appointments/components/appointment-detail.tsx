@@ -1,18 +1,15 @@
 'use client';
 
 import {
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import type { Appointment, Staff } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar, Clock, User, Stethoscope, Tag, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
-import type { ReactNode } from 'react';
 
 const getStatusInfo = (status: Appointment['status']): {
     text: string,
@@ -34,17 +31,12 @@ const getStatusInfo = (status: Appointment['status']): {
 interface AppointmentDetailProps {
   appointment: Appointment;
   staffMember?: Staff;
-  trigger: ReactNode;
 }
 
-export function AppointmentDetail({ appointment, staffMember, trigger }: AppointmentDetailProps) {
+export function AppointmentDetail({ appointment, staffMember }: AppointmentDetailProps) {
   const statusInfo = getStatusInfo(appointment.status);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {trigger}
-      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline text-xl">
@@ -99,6 +91,5 @@ export function AppointmentDetail({ appointment, staffMember, trigger }: Appoint
             )}
         </div>
       </DialogContent>
-    </Dialog>
   );
 }

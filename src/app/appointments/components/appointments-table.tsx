@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, FileSearch, Pencil, Trash2, CalendarSearch } from 'lucide-react';
 import { AppointmentDetail } from './appointment-detail';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
 const getStatusVariant = (status: Appointment['status']) => {
   switch (status) {
@@ -94,35 +95,34 @@ export function AppointmentsTable({ appointments, staff }: { appointments: Appoi
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                    <AppointmentDetail
-                        appointment={appointment}
-                        staffMember={staffMember}
-                        trigger={
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                        <span className="sr-only">Mở menu</span>
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                        <FileSearch className="mr-2 h-4 w-4" />
-                                        <span>Xem chi tiết</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <Pencil className="mr-2 h-4 w-4" />
-                                        <span>Sửa</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive focus:text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>Xóa</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        }
-                    />
+                    <Dialog>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Mở menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+                                <DialogTrigger asChild>
+                                  <DropdownMenuItem>
+                                      <FileSearch className="mr-2 h-4 w-4" />
+                                      <span>Xem chi tiết</span>
+                                  </DropdownMenuItem>
+                                </DialogTrigger>
+                                <DropdownMenuItem>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    <span>Sửa</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    <span>Xóa</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AppointmentDetail appointment={appointment} staffMember={staffMember} />
+                    </Dialog>
                 </TableCell>
               </TableRow>
             );
