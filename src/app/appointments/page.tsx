@@ -19,7 +19,7 @@ import { DailyTimeline } from './components/daily-timeline';
 import { format } from 'date-fns';
 
 export default function AppointmentsPage() {
-  const [date, setDate] = useState<Date | undefined>(new Date(2024, 6, 30));
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   const selectedDateString = date ? format(date, 'yyyy-MM-dd') : undefined;
 
@@ -36,7 +36,7 @@ export default function AppointmentsPage() {
             <PopoverTrigger asChild>
               <Button variant="outline">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {selectedDateString ? formatDate(selectedDateString) : <span>Chọn ngày</span>}
+                {date ? formatDate(format(date, 'yyyy-MM-dd')) : <span>Chọn ngày</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
