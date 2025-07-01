@@ -25,9 +25,11 @@ const getStatusClasses = (status: Appointment['status']) => {
 export function DailyTimeline({
   appointments,
   staff,
+  onUpdateStatus,
 }: {
   appointments: Appointment[];
   staff: Staff[];
+  onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
 }) {
   const START_HOUR = 7;
   const END_HOUR = 18;
@@ -98,7 +100,7 @@ export function DailyTimeline({
                                             <p>{appointment.startTime} - {appointment.endTime}</p>
                                         </div>
                                     </DialogTrigger>
-                                    <AppointmentDetail appointment={appointment} staffMember={appointmentStaff} />
+                                    <AppointmentDetail appointment={appointment} staffMember={appointmentStaff} onUpdateStatus={onUpdateStatus} />
                                 </Dialog>
                             )
                         })}

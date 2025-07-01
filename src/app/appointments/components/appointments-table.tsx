@@ -50,7 +50,7 @@ const translateStatus = (status: Appointment['status']) => {
 };
 
 
-export function AppointmentsTable({ appointments, staff }: { appointments: Appointment[], staff: Staff[] }) {
+export function AppointmentsTable({ appointments, staff, onUpdateStatus }: { appointments: Appointment[], staff: Staff[], onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void; }) {
   if (appointments.length === 0) {
     return (
       <Card>
@@ -121,7 +121,7 @@ export function AppointmentsTable({ appointments, staff }: { appointments: Appoi
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <AppointmentDetail appointment={appointment} staffMember={staffMember} />
+                        <AppointmentDetail appointment={appointment} staffMember={staffMember} onUpdateStatus={onUpdateStatus} />
                     </Dialog>
                 </TableCell>
               </TableRow>

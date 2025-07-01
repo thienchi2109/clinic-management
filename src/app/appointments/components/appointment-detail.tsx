@@ -10,6 +10,8 @@ import { formatDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar, Clock, User, Stethoscope, Tag, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 const getStatusInfo = (status: Appointment['status']): {
     text: string,
@@ -31,9 +33,10 @@ const getStatusInfo = (status: Appointment['status']): {
 interface AppointmentDetailProps {
   appointment: Appointment;
   staffMember?: Staff;
+  onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
 }
 
-export function AppointmentDetail({ appointment, staffMember }: AppointmentDetailProps) {
+export function AppointmentDetail({ appointment, staffMember, onUpdateStatus }: AppointmentDetailProps) {
   const statusInfo = getStatusInfo(appointment.status);
 
   return (
@@ -81,8 +84,26 @@ export function AppointmentDetail({ appointment, staffMember }: AppointmentDetai
                 </div>
             </div>
 
+             <div className="pt-2 space-y-2">
+                <Label htmlFor="status-select" className="text-sm font-medium">Cập nhật trạng thái</Label>
+                <Select
+                    defaultValue={appointment.status}
+                    onValueChange={(value) => onUpdateStatus(appointment.id, value as Appointment['status'])}
+                >
+                    <SelectTrigger id="status-select">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Scheduled">Đã lên lịch</SelectItem>
+                        <SelectItem value="Completed">Hoàn thành</SelectItem>
+                        <SelectItem value="Cancelled">Đã hủy</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+
             {staffMember && (
-                 <div className="p-4 border rounded-lg space-y-2 text-sm">
+                 <div className="p-4 border rounded-lg space-y-2 text-sm mt-4">
                     <h4 className="font-semibold text-base mb-2">Thông tin nhân viên y tế</h4>
                     <p><strong>Chức vụ:</strong> {staffMember.role}</p>
                     <p><strong>Email:</strong> {staffMember.email}</p>

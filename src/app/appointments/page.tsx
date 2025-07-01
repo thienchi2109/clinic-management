@@ -87,6 +87,20 @@ export default function AppointmentsPage() {
         return updatedAppointments;
     });
   };
+  
+  const handleUpdateAppointmentStatus = (appointmentId: string, newStatus: Appointment['status']) => {
+    setAppointments(prevAppointments => {
+      const updatedAppointments = prevAppointments.map(app => 
+        app.id === appointmentId ? { ...app, status: newStatus } : app
+      );
+      try {
+        localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+      } catch (error) {
+        console.error("Failed to save appointment status to localStorage", error);
+      }
+      return updatedAppointments;
+    });
+  };
 
   return (
     <Tabs defaultValue="timeline" className="space-y-4 flex flex-col h-full">
@@ -152,10 +166,10 @@ export default function AppointmentsPage() {
         </div>
       </div>
       <TabsContent value="timeline" className="flex-1 overflow-auto">
-        <DailyTimeline appointments={dailyAppointments} staff={staffForDay} />
+        <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} />
       </TabsContent>
       <TabsContent value="table" className="flex-1 overflow-auto">
-        <AppointmentsTable appointments={dailyAppointments} staff={staff} />
+        <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} />
       </TabsContent>
     </Tabs>
   );
