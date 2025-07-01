@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -157,7 +158,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="ml-auto font-medium">
-                    <Badge variant={appointment.status === 'Scheduled' ? 'default' : 'secondary'}>
+                    <Badge variant="default">
                       {appointment.time}
                     </Badge>
                   </div>
