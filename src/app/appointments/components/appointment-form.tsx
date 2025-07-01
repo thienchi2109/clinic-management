@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,6 +43,7 @@ interface AppointmentFormProps {
 }
 
 export function AppointmentForm({ staff, onSave, onClose }: AppointmentFormProps) {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentFormSchema),
     defaultValues: {
@@ -109,7 +111,7 @@ export function AppointmentForm({ staff, onSave, onClose }: AppointmentFormProps
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Ngày khám</FormLabel>
-              <Popover>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
@@ -132,7 +134,10 @@ export function AppointmentForm({ staff, onSave, onClose }: AppointmentFormProps
                   <Calendar
                     mode="single"
                     selected={field.value}
-                    onSelect={field.onChange}
+                    onSelect={(date) => {
+                      field.onChange(date);
+                      setIsCalendarOpen(false);
+                    }}
                     disabled={(date) =>
                       date < new Date(new Date().setHours(0, 0, 0, 0))
                     }

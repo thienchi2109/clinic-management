@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { appointments as mockAppointments, staff } from '@/lib/mock-data';
-import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,12 +19,14 @@ import { DailyTimeline } from './components/daily-timeline';
 import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
 import type { Appointment } from '@/lib/types';
+import { Input } from '@/components/ui/input';
 
 export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>();
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     // Set date only on the client-side to prevent hydration mismatch
@@ -33,9 +35,11 @@ export default function AppointmentsPage() {
 
   const selectedDateString = date ? format(date, 'yyyy-MM-dd') : '';
 
-  const dailyAppointments = appointments.filter(
-    (app) => app.date === selectedDateString
-  );
+  const dailyAppointments = appointments
+    .filter((app) => app.date === selectedDateString)
+    .filter((app) =>
+      app.patientName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const staffForDay = useMemo(() => {
     const staffNamesOnSchedule = [
@@ -58,9 +62,19 @@ export default function AppointmentsPage() {
 
   return (
     <div className="space-y-6 flex flex-col h-full">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-y-4">
         <h1 className="text-2xl font-headline font-bold">Lịch hẹn</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap justify-end">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Tìm theo tên bệnh nhân..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full sm:w-[250px]"
+            />
+          </div>
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button variant="outline">
