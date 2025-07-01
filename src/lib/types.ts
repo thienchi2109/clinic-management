@@ -1,0 +1,41 @@
+export interface Patient {
+  id: string;
+  name: string;
+  age: number;
+  gender: 'Male' | 'Female' | 'Other';
+  lastVisit: string;
+  avatarUrl: string;
+}
+
+export interface Appointment {
+  id: string;
+  patientName: string;
+  doctorName: string;
+  date: string;
+  time: string;
+  status: 'Scheduled' | 'Completed' | 'Cancelled';
+}
+
+export interface Medication {
+  id: string;
+  name: string;
+  batchNo: string;
+  expiryDate: string;
+  stock: number;
+}
+
+export interface Invoice {
+  id: string;
+  patientName: string;
+  date: string;
+  amount: number;
+  status: 'Paid' | 'Pending' | 'Overdue';
+}
+
+export interface PatientDocument {
+  id: string;
+  name: string;
+  type: 'Ultrasound' | 'X-Ray' | 'Blood Test' | 'Prescription';
+  uploadDate: string;
+  url: string;
+}
