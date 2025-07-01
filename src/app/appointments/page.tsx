@@ -100,17 +100,33 @@ export default function AppointmentsPage() {
   };
   
   const handleUpdateAppointmentStatus = (appointmentId: string, newStatus: Appointment['status']) => {
-    setAppointments(prevAppointments => {
-      const updatedAppointments = prevAppointments.map(app => 
-        app.id === appointmentId ? { ...app, status: newStatus } : app
+    const appointmentToUpdate = appointments.find(app => app.id === appointmentId);
+    if (!appointmentToUpdate) return;
+
+    const updatedAppointments = appointments.map(app =>
+      app.id === appointmentId ? { ...app, status: newStatus } : app
+    );
+    setAppointments(updatedAppointments);
+
+    try {
+      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    } catch (error) {
+      console.error("Failed to save appointment status to localStorage", error);
+    }
+
+    if (newStatus === 'Completed') {
+      const updatedPatients = patients.map(p =>
+        p.name === appointmentToUpdate.patientName
+          ? { ...p, lastVisit: appointmentToUpdate.date }
+          : p
       );
+      setPatients(updatedPatients);
       try {
-        localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+        localStorage.setItem('patients', JSON.stringify(updatedPatients));
       } catch (error) {
-        console.error("Failed to save appointment status to localStorage", error);
+        console.error("Failed to save updated patients to localStorage", error);
       }
-      return updatedAppointments;
-    });
+    }
   };
 
   const handleSavePatient = (newPatientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>): Patient => {
