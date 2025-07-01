@@ -48,14 +48,18 @@ export function SidebarNav() {
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
-            <Stethoscope className="h-6 w-6" />
-          </Button>
-          <h1 className="text-lg font-headline font-semibold">Clinic Management</h1>
-          <div className="ml-auto">
-            <SidebarTrigger />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
+              <Link href="/">
+                <Stethoscope className="h-6 w-6" />
+              </Link>
+            </Button>
+            <h1 className="whitespace-nowrap text-lg font-headline font-semibold group-data-[collapsible=icon]:hidden">
+              Clinic Management
+            </h1>
           </div>
+          <SidebarTrigger />
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
@@ -84,7 +88,7 @@ export function SidebarNav() {
                 <AvatarImage src="https://placehold.co/100x100.png" alt="@dr-smith" data-ai-hint="doctor avatar" />
                 <AvatarFallback>DS</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col overflow-hidden text-sm">
+              <div className="flex flex-col overflow-hidden text-sm group-data-[collapsible=icon]:hidden">
                 <span className="truncate font-medium">Dr. Smith</span>
                 <span className="truncate text-sidebar-foreground/70">
                   dr.smith@clinic.com
