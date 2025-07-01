@@ -16,7 +16,7 @@ const timeToMinutes = (time: string): number => {
 const getStatusClasses = (status: Appointment['status']) => {
     switch (status) {
         case 'Scheduled': return 'bg-primary/80 border-primary text-primary-foreground';
-        case 'Completed': return 'bg-accent border-accent/80 text-accent-foreground';
+        case 'Completed': return 'bg-accent/80 border-accent text-accent-foreground';
         case 'Cancelled': return 'bg-destructive/80 border-destructive text-destructive-foreground opacity-80';
         default: return 'bg-muted border-border';
     }

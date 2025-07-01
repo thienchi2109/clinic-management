@@ -23,12 +23,12 @@ import { MoreHorizontal, FileSearch, Pencil, Trash2, CalendarSearch } from 'luci
 import { AppointmentDetail } from './appointment-detail';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
-const getStatusVariant = (status: Appointment['status']) => {
+const getStatusVariant = (status: Appointment['status']): 'secondary' | 'accent' | 'destructive' | 'outline' => {
   switch (status) {
     case 'Scheduled':
       return 'secondary';
     case 'Completed':
-      return 'default';
+      return 'accent';
     case 'Cancelled':
       return 'destructive';
     default:

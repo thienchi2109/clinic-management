@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import type { Appointment, Staff } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
@@ -12,17 +15,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar, Clock, User, Stethoscope, Tag, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const getStatusInfo = (status: Appointment['status']): {
     text: string,
-    variant: 'default' | 'secondary' | 'destructive',
+    variant: 'accent' | 'secondary' | 'destructive',
     icon: React.FC<React.SVGProps<SVGSVGElement>>
 } => {
   switch (status) {
     case 'Scheduled':
       return { text: 'Đã lên lịch', variant: 'secondary', icon: AlertCircle };
     case 'Completed':
-      return { text: 'Hoàn thành', variant: 'default', icon: CheckCircle2 };
+      return { text: 'Hoàn thành', variant: 'accent', icon: CheckCircle2 };
     case 'Cancelled':
       return { text: 'Đã hủy', variant: 'destructive', icon: XCircle };
     default:
@@ -37,7 +42,12 @@ interface AppointmentDetailProps {
 }
 
 export function AppointmentDetail({ appointment, staffMember, onUpdateStatus }: AppointmentDetailProps) {
-  const statusInfo = getStatusInfo(appointment.status);
+  const [currentStatus, setCurrentStatus] = useState<Appointment['status']>(appointment.status);
+  const statusInfo = getStatusInfo(currentStatus);
+
+  const handleSaveChanges = () => {
+    onUpdateStatus(appointment.id, currentStatus);
+  };
 
   return (
       <DialogContent className="sm:max-w-md">
@@ -87,8 +97,8 @@ export function AppointmentDetail({ appointment, staffMember, onUpdateStatus }: 
              <div className="pt-2 space-y-2">
                 <Label htmlFor="status-select" className="text-sm font-medium">Cập nhật trạng thái</Label>
                 <Select
-                    defaultValue={appointment.status}
-                    onValueChange={(value) => onUpdateStatus(appointment.id, value as Appointment['status'])}
+                    value={currentStatus}
+                    onValueChange={(value) => setCurrentStatus(value as Appointment['status'])}
                 >
                     <SelectTrigger id="status-select">
                         <SelectValue />
@@ -111,6 +121,14 @@ export function AppointmentDetail({ appointment, staffMember, onUpdateStatus }: 
                  </div>
             )}
         </div>
+        <DialogFooter className="gap-2 sm:justify-end">
+          <DialogClose asChild>
+            <Button type="button" variant="outline">Hủy</Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="button" onClick={handleSaveChanges}>Lưu thay đổi</Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
   );
 }
