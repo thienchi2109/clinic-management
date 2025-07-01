@@ -28,7 +28,7 @@ const translateGender = (gender: Patient['gender']) => {
 }
 
 export default function Dashboard() {
-  const today = new Date();
+  const today = new Date('2024-07-30'); // Use static date to match mock data and prevent hydration errors
   const todaysAppointments = appointments.filter(
     (app) => new Date(app.date).toDateString() === today.toDateString()
   );

@@ -1,5 +1,11 @@
 import { Patient, Appointment, Medication, Invoice, PatientDocument } from './types';
 
+// Hardcode dates to prevent hydration errors from `new Date()`
+const staticToday = '2024-07-30';
+const staticExpiringSoon = '2024-08-14'; // 15 days from staticToday
+const staticExpired = '2024-07-25'; // 5 days before staticToday
+
+
 export const patients: Patient[] = [
   { id: 'PAT001', name: 'John Doe', age: 45, gender: 'Male', lastVisit: '2023-10-15', avatarUrl: 'https://placehold.co/100x100.png' },
   { id: 'PAT002', name: 'Jane Smith', age: 34, gender: 'Female', lastVisit: '2023-11-01', avatarUrl: 'https://placehold.co/100x100.png' },
@@ -9,18 +15,18 @@ export const patients: Patient[] = [
 ];
 
 export const appointments: Appointment[] = [
-  { id: 'APP001', patientName: 'John Doe', doctorName: 'Dr. Adams', date: new Date().toISOString().split('T')[0], time: '09:00 AM', status: 'Scheduled' },
-  { id: 'APP002', patientName: 'Jane Smith', doctorName: 'Dr. Carter', date: new Date().toISOString().split('T')[0], time: '10:30 AM', status: 'Scheduled' },
-  { id: 'APP003', patientName: 'Emily Jones', doctorName: 'Dr. Adams', date: new Date().toISOString().split('T')[0], time: '11:15 AM', status: 'Completed' },
+  { id: 'APP001', patientName: 'John Doe', doctorName: 'Dr. Adams', date: staticToday, time: '09:00 AM', status: 'Scheduled' },
+  { id: 'APP002', patientName: 'Jane Smith', doctorName: 'Dr. Carter', date: staticToday, time: '10:30 AM', status: 'Scheduled' },
+  { id: 'APP003', patientName: 'Emily Jones', doctorName: 'Dr. Adams', date: staticToday, time: '11:15 AM', status: 'Completed' },
   { id: 'APP004', patientName: 'Robert Paulson', doctorName: 'Dr. Shaw', date: '2024-06-28', time: '02:00 PM', status: 'Cancelled' },
   { id: 'APP005', patientName: 'Sarah Connor', doctorName: 'Dr. Carter', date: '2024-07-01', time: '09:30 AM', status: 'Scheduled' },
 ];
 
 export const medications: Medication[] = [
   { id: 'MED001', name: 'Paracetamol 500mg', batchNo: 'B0123', expiryDate: '2025-12-31', stock: 150 },
-  { id: 'MED002', name: 'Amoxicillin 250mg', batchNo: 'B0456', expiryDate: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString().split('T')[0], stock: 75 },
+  { id: 'MED002', name: 'Amoxicillin 250mg', batchNo: 'B0456', expiryDate: staticExpiringSoon, stock: 75 },
   { id: 'MED003', name: 'Ibuprofen 200mg', batchNo: 'B0789', expiryDate: '2024-08-31', stock: 200 },
-  { id: 'MED004', name: 'Aspirin 100mg', batchNo: 'B1011', expiryDate: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString().split('T')[0], stock: 40 },
+  { id: 'MED004', name: 'Aspirin 100mg', batchNo: 'B1011', expiryDate: staticExpired, stock: 40 },
   { id: 'MED005', name: 'Lisinopril 10mg', batchNo: 'B1213', expiryDate: '2026-01-31', stock: 90 },
 ];
 
