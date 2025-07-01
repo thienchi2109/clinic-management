@@ -77,29 +77,31 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
           />
         </div>
         
-        <ScrollArea className="h-[200px] w-full rounded-md border">
-            <div className="p-2">
-                {searchTerm && filteredPatients.length === 0 ? (
-                    <p className="text-center text-sm text-muted-foreground p-4">Không tìm thấy bệnh nhân.</p>
-                ) : (
-                    filteredPatients.map((patient) => (
-                      <button
-                        key={patient.id}
-                        onClick={() => {
-                          setSelectedPatientId(patient.id);
-                          setError('');
-                        }}
-                        className={cn(
-                          "w-full text-left p-2 rounded-md text-sm hover:bg-accent",
-                          selectedPatientId === patient.id && "bg-accent text-accent-foreground"
-                        )}
-                      >
-                        {patient.name}
-                      </button>
-                    ))
-                )}
-            </div>
-        </ScrollArea>
+        {searchTerm && (
+            <ScrollArea className="h-[200px] w-full rounded-md border">
+                <div className="p-2">
+                    {filteredPatients.length === 0 ? (
+                        <p className="text-center text-sm text-muted-foreground p-4">Không tìm thấy bệnh nhân.</p>
+                    ) : (
+                        filteredPatients.map((patient) => (
+                          <button
+                            key={patient.id}
+                            onClick={() => {
+                              setSelectedPatientId(patient.id);
+                              setError('');
+                            }}
+                            className={cn(
+                              "w-full text-left p-2 rounded-md text-sm hover:bg-accent",
+                              selectedPatientId === patient.id && "bg-accent text-accent-foreground"
+                            )}
+                          >
+                            {patient.name}
+                          </button>
+                        ))
+                    )}
+                </div>
+            </ScrollArea>
+        )}
         {error && <p className="text-sm font-medium text-destructive">{error}</p>}
         
         <Button onClick={handleAddToQueue} disabled={!selectedPatient}>
