@@ -64,7 +64,7 @@ export function InvoiceForm({ patientName, onSave, onClose }: InvoiceFormProps) 
   });
   
   const watchedItems = form.watch('items');
-  const totalAmount = watchedItems.reduce((sum, item) => sum + (item.amount || 0), 0);
+  const totalAmount = watchedItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
   function onSubmit(data: InvoiceFormValues, status: 'Paid' | 'Pending') {
     const invoiceData = {
