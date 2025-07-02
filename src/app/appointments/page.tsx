@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { appointments as mockAppointments, patients as mockPatients, staff } from '@/lib/mock-data';
+import { appointments as mockAppointments, patients as mockPatients, staff, invoices as mockInvoices } from '@/lib/mock-data';
 import { PlusCircle, Calendar as CalendarIcon, Search, UserPlus, Users } from 'lucide-react';
 import {
   Dialog,
@@ -18,11 +18,12 @@ import { formatDate, calculateAge } from '@/lib/utils';
 import { DailyTimeline } from './components/daily-timeline';
 import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
-import type { Appointment, Patient } from '@/lib/types';
+import type { Appointment, Patient, Invoice } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentsTable } from './components/appointments-table';
 import { FindPatientForm } from './components/find-patient-form';
+import { InvoiceForm } from '@/app/invoices/components/invoice-form';
 import {
   Card,
   CardContent,
@@ -36,6 +37,7 @@ export default function AppointmentsPage() {
   const [date, setDate] = useState<Date | undefined>();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,32 +45,31 @@ export default function AppointmentsPage() {
   const [walkInQueue, setWalkInQueue] = useState<Patient[]>([]);
   const [isWalkInDialogOpen, setIsWalkInDialogOpen] = useState(false);
 
+  const [invoiceCandidate, setInvoiceCandidate] = useState<Appointment | null>(null);
+
 
   useEffect(() => {
     setDate(new Date());
 
-    try {
-      const cachedAppointments = localStorage.getItem('appointments');
-      if (cachedAppointments) {
-        setAppointments(JSON.parse(cachedAppointments));
-      } else {
-        setAppointments(mockAppointments);
-        localStorage.setItem('appointments', JSON.stringify(mockAppointments));
+    const loadData = (key: string, mockData: any[]) => {
+      try {
+        const cachedData = localStorage.getItem(key);
+        if (cachedData) {
+          return JSON.parse(cachedData);
+        } else {
+          localStorage.setItem(key, JSON.stringify(mockData));
+          return mockData;
+        }
+      } catch (error) {
+        console.error(`Failed to access localStorage or parse ${key}`, error);
+        return mockData;
       }
-      
-      const cachedPatients = localStorage.getItem('patients');
-      if (cachedPatients) {
-        setPatients(JSON.parse(cachedPatients));
-      } else {
-        setPatients(mockPatients);
-        localStorage.setItem('patients', JSON.stringify(mockPatients));
-      }
+    };
+    
+    setAppointments(loadData('appointments', mockAppointments));
+    setPatients(loadData('patients', mockPatients));
+    setInvoices(loadData('invoices', mockInvoices));
 
-    } catch (error) {
-      console.error("Failed to access localStorage or parse data", error);
-      setAppointments(mockAppointments);
-      setPatients(mockPatients);
-    }
   }, []);
 
   const selectedDateString = date ? format(date, 'yyyy-MM-dd') : '';
@@ -113,32 +114,35 @@ export default function AppointmentsPage() {
   };
   
   const handleUpdateAppointmentStatus = (appointmentId: string, newStatus: Appointment['status']) => {
-    const appointmentToUpdate = appointments.find(app => app.id === appointmentId);
-    if (!appointmentToUpdate) return;
+    let appointmentForInvoice: Appointment | undefined;
+    const updatedAppointments = appointments.map(app => {
+      if (app.id === appointmentId) {
+        appointmentForInvoice = { ...app, status: newStatus };
+        return appointmentForInvoice;
+      }
+      return app;
+    });
 
-    const updatedAppointments = appointments.map(app =>
-      app.id === appointmentId ? { ...app, status: newStatus } : app
-    );
     setAppointments(updatedAppointments);
-
     try {
       localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
     } catch (error) {
       console.error("Failed to save appointment status to localStorage", error);
     }
 
-    if (newStatus === 'Completed') {
-      const updatedPatients = patients.map(p =>
-        p.name === appointmentToUpdate.patientName
-          ? { ...p, lastVisit: appointmentToUpdate.date }
-          : p
-      );
-      setPatients(updatedPatients);
-      try {
-        localStorage.setItem('patients', JSON.stringify(updatedPatients));
-      } catch (error) {
-        console.error("Failed to save updated patients to localStorage", error);
-      }
+    if (newStatus === 'Completed' && appointmentForInvoice) {
+        setInvoiceCandidate(appointmentForInvoice);
+        const updatedPatients = patients.map(p =>
+            p.name === appointmentForInvoice!.patientName
+            ? { ...p, lastVisit: appointmentForInvoice!.date }
+            : p
+        );
+        setPatients(updatedPatients);
+        try {
+            localStorage.setItem('patients', JSON.stringify(updatedPatients));
+        } catch (error) {
+            console.error("Failed to save updated patients to localStorage", error);
+        }
     }
   };
 
@@ -157,6 +161,26 @@ export default function AppointmentsPage() {
         console.error("Failed to save patients to localStorage", error);
     }
     return newPatient;
+  };
+  
+  const handleSaveInvoice = (invoiceData: Omit<Invoice, 'id' | 'amount'>, status: 'Paid' | 'Pending') => {
+    setInvoices(prevInvoices => {
+        const totalAmount = invoiceData.items.reduce((sum, item) => sum + item.amount, 0);
+        const newInvoice: Invoice = {
+            ...invoiceData,
+            id: `INV${String(prevInvoices.length + 1).padStart(3, '0')}`,
+            amount: totalAmount,
+            status: status,
+        };
+        const updatedInvoices = [...prevInvoices, newInvoice];
+        try {
+            localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+        } catch (error) {
+            console.error("Failed to save invoices to localStorage", error);
+        }
+        return updatedInvoices;
+    });
+    setInvoiceCandidate(null);
   };
 
   const handleAddToWalkInQueue = (patient: Patient) => {
@@ -243,6 +267,22 @@ export default function AppointmentsPage() {
           <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} />
         </TabsContent>
       </Tabs>
+      
+      {invoiceCandidate && (
+        <Dialog open={!!invoiceCandidate} onOpenChange={(open) => !open && setInvoiceCandidate(null)}>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Tạo hóa đơn</DialogTitle>
+                    <DialogDescription>Tạo hóa đơn cho cuộc hẹn đã hoàn thành.</DialogDescription>
+                </DialogHeader>
+                <InvoiceForm
+                    patientName={invoiceCandidate.patientName}
+                    onSave={handleSaveInvoice}
+                    onClose={() => setInvoiceCandidate(null)}
+                />
+            </DialogContent>
+        </Dialog>
+      )}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">

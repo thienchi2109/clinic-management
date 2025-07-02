@@ -27,10 +27,17 @@ export interface Medication {
   stock: number;
 }
 
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  amount: number;
+}
+
 export interface Invoice {
   id: string;
   patientName: string;
   date: string;
+  items: InvoiceItem[];
   amount: number;
   status: 'Paid' | 'Pending' | 'Overdue';
 }

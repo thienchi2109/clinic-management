@@ -49,11 +49,11 @@ export const medications: Medication[] = [
 ];
 
 export const invoices: Invoice[] = [
-  { id: 'INV001', patientName: 'Nguyễn Văn An', date: '2023-10-15', amount: 150.00, status: 'Paid' },
-  { id: 'INV002', patientName: 'Trần Thị Bích', date: '2023-11-01', amount: 75.50, status: 'Paid' },
-  { id: 'INV003', patientName: 'Lê Thị Cẩm', date: '2023-11-20', amount: 200.00, status: 'Pending' },
-  { id: 'INV004', patientName: 'Phạm Văn Dũng', date: '2023-12-05', amount: 310.75, status: 'Overdue' },
-  { id: 'INV005', patientName: 'Hoàng Văn Em', date: '2024-01-02', amount: 50.00, status: 'Paid' },
+  { id: 'INV001', patientName: 'Nguyễn Văn An', date: '2023-10-15', items: [{id: '1', description: 'Phí tư vấn', amount: 100}, {id: '2', description: 'Thuốc', amount: 50}], amount: 150.00, status: 'Paid' },
+  { id: 'INV002', patientName: 'Trần Thị Bích', date: '2023-11-01', items: [{id: '1', description: 'Phí tư vấn', amount: 75.50}], amount: 75.50, status: 'Paid' },
+  { id: 'INV003', patientName: 'Lê Thị Cẩm', date: '2023-11-20', items: [{id: '1', description: 'Phí tư vấn', amount: 200}], amount: 200.00, status: 'Pending' },
+  { id: 'INV004', patientName: 'Phạm Văn Dũng', date: '2023-12-05', items: [{id: '1', description: 'Phí tư vấn', amount: 250}, {id: '2', description: 'Xét nghiệm máu', amount: 60.75}], amount: 310.75, status: 'Overdue' },
+  { id: 'INV005', patientName: 'Hoàng Văn Em', date: '2024-01-02', items: [{id: '1', description: 'Phí tư vấn', amount: 50}], amount: 50.00, status: 'Paid' },
 ];
 
 export const documents: PatientDocument[] = [

@@ -17,7 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { invoices } from '@/lib/mock-data';
-import { PlusCircle, Printer } from 'lucide-react';
+import { Printer } from 'lucide-react';
 import type { Invoice } from '@/lib/types';
 import {
   Dialog,
@@ -52,6 +52,10 @@ const translateStatus = (status: Invoice['status']) => {
     }
 }
 
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
+
 const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
     <DialogContent className="sm:max-w-[625px]">
       <DialogHeader>
@@ -63,7 +67,6 @@ const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
       <div className="py-4 space-y-4">
         <div className="p-4 border rounded-lg">
             <h3 className="font-semibold">Bệnh nhân: {invoice.patientName}</h3>
-            <p className="text-sm text-muted-foreground">ID: PAT001</p>
         </div>
         <div>
             <h4 className="font-semibold mb-2">Các mục:</h4>
@@ -75,21 +78,19 @@ const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow>
-                        <TableCell>Phí tư vấn</TableCell>
-                        <TableCell className="text-right">$100.00</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>Thuốc</TableCell>
-                        <TableCell className="text-right">$50.00</TableCell>
-                    </TableRow>
+                    {invoice.items.map(item => (
+                         <TableRow key={item.id}>
+                            <TableCell>{item.description}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                        </TableRow>
+                    ))}
                 </TableBody>
             </Table>
         </div>
         <div className="flex justify-end pt-4 border-t">
             <div className="text-right">
                 <p className="text-muted-foreground">Tổng cộng</p>
-                <p className="text-2xl font-bold">${invoice.amount.toFixed(2)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(invoice.amount)}</p>
             </div>
         </div>
       </div>
@@ -107,18 +108,14 @@ export default function InvoicesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-headline font-bold">Hóa đơn</h1>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Tạo hóa đơn
-        </Button>
+        <h1 className="text-2xl font-headline font-bold">Lịch sử Hóa đơn</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Lịch sử hóa đơn</CardTitle>
+          <CardTitle>Tất cả hóa đơn</CardTitle>
           <CardDescription>
-            Xem và quản lý tất cả hóa đơn của bệnh nhân.
+            Xem lại lịch sử thanh toán của bệnh nhân.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -139,7 +136,7 @@ export default function InvoicesPage() {
                   <TableCell className="font-medium">{invoice.id}</TableCell>
                   <TableCell>{invoice.patientName}</TableCell>
                   <TableCell>{formatDate(invoice.date)}</TableCell>
-                  <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                  <TableCell>{formatCurrency(invoice.amount)}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(invoice.status)}>
                       {translateStatus(invoice.status)}
