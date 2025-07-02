@@ -108,7 +108,7 @@ export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) 
                 )} />
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={onClose}>Hủy</Button>
-                    <Button type="submit">Lưu</Button>
+                    <Button type="submit">{initialData ? 'Lưu thay đổi' : 'Thêm bệnh nhân'}</Button>
                 </DialogFooter>
             </form>
         </Form>
