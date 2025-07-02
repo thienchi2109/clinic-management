@@ -17,6 +17,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { PatientForm } from '@/app/patients/components/patient-form';
 import type { Patient } from '@/lib/types';
+import { Card } from '@/components/ui/card';
 
 interface FindPatientFormProps {
   patients: Patient[];
@@ -28,8 +29,9 @@ interface FindPatientFormProps {
 
 export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNewPatient, onClose }: FindPatientFormProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [selectedPatientId, setSelectedPatientId] = React.useState<string | undefined>();
+  const [selectedPatient, setSelectedPatient] = React.useState<Patient | undefined>();
   const [isNewPatientDialogOpen, setIsNewPatientDialogOpen] = React.useState(false);
+  const [isPatientListVisible, setIsPatientListVisible] = React.useState(false);
   const [error, setError] = React.useState('');
 
   const availablePatients = patients.filter(p => !walkInQueue.some(q => q.id === p.id));
@@ -42,8 +44,6 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
       patient.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, availablePatients]);
-
-  const selectedPatient = patients.find(p => p.id === selectedPatientId);
 
   const handleAddToQueue = () => {
     if (selectedPatient) {
@@ -69,39 +69,58 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
       <div className="grid gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="patient-search">Tìm bệnh nhân hiện có</Label>
-          <Input
-            id="patient-search"
-            placeholder="Nhập tên bệnh nhân để tìm kiếm..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+           <div className="relative w-full">
+              <Input
+                id="patient-search"
+                placeholder="Nhập để tìm kiếm bệnh nhân..."
+                value={searchTerm}
+                onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    if (selectedPatient) {
+                        setSelectedPatient(undefined);
+                    }
+                    if (!isPatientListVisible) setIsPatientListVisible(true);
+                }}
+                onFocus={() => setIsPatientListVisible(true)}
+                onBlur={() => {
+                    setTimeout(() => {
+                        setIsPatientListVisible(false);
+                    }, 150);
+                }}
+                autoComplete="off"
+              />
+              {isPatientListVisible && searchTerm && (
+                <div className="absolute top-full mt-1 w-full z-10">
+                    <Card>
+                        <ScrollArea className="h-auto max-h-48 p-1">
+                        {filteredPatients.length > 0 ? (
+                            filteredPatients.map((p) => (
+                            <div
+                                key={p.id}
+                                className="p-2 text-sm hover:bg-accent rounded-md cursor-pointer"
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    setSelectedPatient(p);
+                                    setSearchTerm(p.name);
+                                    setIsPatientListVisible(false);
+                                    setError('');
+                                }}
+                            >
+                                {p.name}
+                            </div>
+                            ))
+                        ) : (
+                            <p className="p-2 text-center text-sm text-muted-foreground">
+                            Không tìm thấy bệnh nhân.
+                            </p>
+                        )}
+                        </ScrollArea>
+                    </Card>
+                </div>
+              )}
+            </div>
         </div>
         
-        {searchTerm && (
-            <ScrollArea className="h-[200px] w-full rounded-md border">
-                <div className="p-2">
-                    {filteredPatients.length === 0 ? (
-                        <p className="text-center text-sm text-muted-foreground p-4">Không tìm thấy bệnh nhân.</p>
-                    ) : (
-                        filteredPatients.map((patient) => (
-                          <button
-                            key={patient.id}
-                            onClick={() => {
-                              setSelectedPatientId(patient.id);
-                              setError('');
-                            }}
-                            className={cn(
-                              "w-full text-left p-2 rounded-md text-sm hover:bg-accent",
-                              selectedPatientId === patient.id && "bg-accent text-accent-foreground"
-                            )}
-                          >
-                            {patient.name}
-                          </button>
-                        ))
-                    )}
-                </div>
-            </ScrollArea>
-        )}
         {error && <p className="text-sm font-medium text-destructive">{error}</p>}
         
         <Button onClick={handleAddToQueue} disabled={!selectedPatient}>
