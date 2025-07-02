@@ -12,11 +12,12 @@ import type { Appointment, Staff, Invoice } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Clock, User, Stethoscope, Tag, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Calendar, Clock, User, Stethoscope, Tag, AlertCircle, CheckCircle2, XCircle, CreditCard } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const getStatusInfo = (status: Appointment['status']): {
     text: string,
@@ -138,23 +139,38 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
                 <>
                     <Separator />
                     <div className="pt-2 space-y-2">
-                        <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-sm">Thông tin thanh toán</h4>
-                            {invoice.status !== 'Paid' && (
-                                <Button size="sm" onClick={() => onUpdateInvoiceStatus(invoice.id, 'Paid')}>
-                                    Đánh dấu đã trả
-                                </Button>
-                            )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                        <h4 className="font-semibold text-sm">Thông tin thanh toán</h4>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm items-center">
                             <span className="text-muted-foreground">Tổng tiền:</span>
                             <span className="font-medium text-right">{formatCurrency(invoice.amount)}</span>
+                            
                             <span className="text-muted-foreground">Trạng thái:</span>
                             <div className="text-right">
                                 <Badge variant={getInvoiceStatusVariant(invoice.status)}>
                                     {translateInvoiceStatus(invoice.status)}
                                 </Badge>
                             </div>
+                            
+                            {invoice.status !== 'Paid' && (
+                                <>
+                                    <span /> {/* Empty cell for alignment */}
+                                    <div className="col-start-2 text-right mt-1">
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary/90" onClick={() => onUpdateInvoiceStatus(invoice.id, 'Paid')}>
+                                                        <CreditCard className="h-4 w-4" />
+                                                        <span className="sr-only">Đánh dấu là đã thanh toán</span>
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Đánh dấu là đã thanh toán</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </>
