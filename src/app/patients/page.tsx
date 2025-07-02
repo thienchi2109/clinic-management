@@ -133,7 +133,7 @@ export default function PatientsPage() {
                 <p className="text-xs text-muted-foreground">Lần khám cuối: {formatDate(patient.lastVisit)}</p>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="secondary" size="sm">
+                    <Button variant="outline" size="sm">
                       Xem chi tiết
                     </Button>
                   </DialogTrigger>
