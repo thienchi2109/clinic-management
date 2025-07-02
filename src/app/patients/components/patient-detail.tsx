@@ -91,11 +91,19 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
       
       const { url, key } = signedUrlResult.success;
 
-      await fetch(url, {
+      const response = await fetch(url, {
         method: 'PUT',
         body: fileToUpload,
         headers: { 'Content-Type': fileToUpload.type },
       });
+
+      if (!response.ok) {
+        throw new Error('Upload to R2 failed.');
+      }
+
+      if (!process.env.NEXT_PUBLIC_R2_PUBLIC_URL) {
+          throw new Error('R2 public URL is not configured on the client. Please set NEXT_PUBLIC_R2_PUBLIC_URL in your .env file.');
+      }
 
       const newDocument: PatientDocument = {
         id: key,
@@ -119,7 +127,7 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
       toast({
         variant: "destructive",
         title: "Tải lên thất bại",
-        description: (error as Error).message || "Đã có lỗi xảy ra khi tải tệp lên.",
+        description: (error as Error).message || "Đã có lỗi xảy ra khi tải tệp lên. Vui lòng kiểm tra lại cấu hình CORS trên R2 bucket.",
       });
     } finally {
       setIsUploading(false);
