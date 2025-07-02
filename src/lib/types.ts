@@ -7,6 +7,7 @@ export interface Patient {
   phone: string;
   lastVisit: string;
   avatarUrl: string;
+  medicalHistory?: string;
 }
 
 export interface Appointment {

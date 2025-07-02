@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { patients as mockPatients, documents } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FileText, UploadCloud, Bell, Phone, MapPin } from 'lucide-react';
+import { FileText, UploadCloud, Bell, Phone, MapPin, HeartPulse } from 'lucide-react';
 import type { Patient } from '@/lib/types';
 import { formatDate, calculateAge } from '@/lib/utils';
 import {
@@ -120,6 +120,12 @@ export default function PatientsPage() {
                         <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
                         <span>{patient.address}</span>
                     </div>
+                    {patient.medicalHistory && (
+                        <div className="flex items-start gap-2 pt-2">
+                            <HeartPulse className="h-4 w-4 flex-shrink-0 mt-0.5 text-primary" />
+                            <p className="text-sm text-foreground">{patient.medicalHistory}</p>
+                        </div>
+                    )}
                 </div>
                 <div>
                     <h4 className="text-sm font-semibold mb-2 text-primary">Tài liệu gần đây</h4>

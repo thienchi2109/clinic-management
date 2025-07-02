@@ -7,11 +7,11 @@ const staticExpired = '2024-07-25'; // 5 days before staticToday
 
 
 export const patients: Patient[] = [
-  { id: 'PAT001', name: 'Nguyễn Văn An', birthYear: 1979, gender: 'Male', address: '123 Đường Chính, Quận 1, TP.HCM', phone: '0901234567', lastVisit: '2023-10-15', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT002', name: 'Trần Thị Bích', birthYear: 1990, gender: 'Female', address: '456 Đường Sồi, Quận 3, TP.HCM', phone: '0902345678', lastVisit: '2023-11-01', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT003', name: 'Lê Thị Cẩm', birthYear: 1996, gender: 'Female', address: '789 Đường Thông, Quận 5, TP.HCM', phone: '0903456789', lastVisit: '2023-11-20', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT004', name: 'Phạm Văn Dũng', birthYear: 1968, gender: 'Male', address: '101 Đường Phong, Quận 10, TP.HCM', phone: '0904567890', lastVisit: '2023-12-05', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'PAT005', name: 'Hoàng Văn Em', birthYear: 1983, gender: 'Male', address: '212 Đường Bạch Dương, Q.Tân Bình, TP.HCM', phone: '0905678901', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: 'PAT001', name: 'Nguyễn Văn An', birthYear: 1979, gender: 'Male', address: '123 Đường Chính, Quận 1, TP.HCM', phone: '0901234567', lastVisit: '2023-10-15', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Tiền sử cao huyết áp, dị ứng với penicillin.' },
+  { id: 'PAT002', name: 'Trần Thị Bích', birthYear: 1990, gender: 'Female', address: '456 Đường Sồi, Quận 3, TP.HCM', phone: '0902345678', lastVisit: '2023-11-01', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Không có bệnh mãn tính.' },
+  { id: 'PAT003', name: 'Lê Thị Cẩm', birthYear: 1996, gender: 'Female', address: '789 Đường Thông, Quận 5, TP.HCM', phone: '0903456789', lastVisit: '2023-11-20', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Hen suyễn từ nhỏ.' },
+  { id: 'PAT004', name: 'Phạm Văn Dũng', birthYear: 1968, gender: 'Male', address: '101 Đường Phong, Quận 10, TP.HCM', phone: '0904567890', lastVisit: '2023-12-05', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Tiểu đường type 2.' },
+  { id: 'PAT005', name: 'Hoàng Văn Em', birthYear: 1983, gender: 'Male', address: '212 Đường Bạch Dương, Q.Tân Bình, TP.HCM', phone: '0905678901', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Đau dạ dày, thường xuyên stress.' },
 ];
 
 export const staff: Staff[] = [

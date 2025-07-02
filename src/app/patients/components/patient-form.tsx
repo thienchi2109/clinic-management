@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DialogFooter } from '@/components/ui/dialog';
 import type { Patient } from '@/lib/types';
+import { Textarea } from '@/components/ui/textarea';
 
 const patientFormSchema = z.object({
   name: z.string().min(2, { message: 'Tên bệnh nhân phải có ít nhất 2 ký tự.' }),
@@ -16,6 +17,7 @@ const patientFormSchema = z.object({
   birthYear: z.coerce.number().min(1900, 'Năm sinh không hợp lệ.').max(new Date().getFullYear(), 'Năm sinh không hợp lệ.'),
   address: z.string().min(5, { message: 'Địa chỉ phải có ít nhất 5 ký tự.' }),
   phone: z.string().regex(/^\d{10}$/, { message: 'Số điện thoại phải có 10 chữ số.' }),
+  medicalHistory: z.string().optional(),
 });
 
 type PatientFormValues = z.infer<typeof patientFormSchema>;
@@ -34,6 +36,7 @@ export function PatientForm({ onSave, onClose }: PatientFormProps) {
             phone: '',
             birthYear: '' as any, // Initialize as empty string to be a controlled component
             gender: undefined,
+            medicalHistory: '',
         },
     });
 
@@ -86,6 +89,13 @@ export function PatientForm({ onSave, onClose }: PatientFormProps) {
                     <FormItem>
                         <FormLabel>Địa chỉ</FormLabel>
                         <FormControl><Input placeholder="123 Đường Chính, Quận 1, TP.HCM" {...field} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+                 <FormField control={form.control} name="medicalHistory" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Tiền sử bệnh</FormLabel>
+                        <FormControl><Textarea placeholder="VD: có tiền sử hen suyễn, không hút thuốc, không dị ứng." rows={3} {...field} /></FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
