@@ -10,10 +10,10 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { patients as mockPatients } from '@/lib/mock-data';
+import { appointments as mockAppointments, invoices as mockInvoices, patients as mockPatients } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UploadCloud, Phone, MapPin, HeartPulse } from 'lucide-react';
-import type { Patient } from '@/lib/types';
+import type { Patient, Appointment, Invoice } from '@/lib/types';
 import { formatDate, calculateAge } from '@/lib/utils';
 import {
   Dialog,
@@ -37,6 +37,8 @@ const translateGender = (gender: Patient['gender']) => {
 
 export default function PatientsPage() {
     const [patients, setPatients] = useState<Patient[]>([]);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
@@ -49,9 +51,28 @@ export default function PatientsPage() {
                 setPatients(mockPatients);
                 localStorage.setItem('patients', JSON.stringify(mockPatients));
             }
+
+            const cachedAppointments = localStorage.getItem('appointments');
+            if (cachedAppointments) {
+                setAppointments(JSON.parse(cachedAppointments));
+            } else {
+                setAppointments(mockAppointments);
+                localStorage.setItem('appointments', JSON.stringify(mockAppointments));
+            }
+            
+            const cachedInvoices = localStorage.getItem('invoices');
+            if (cachedInvoices) {
+                setInvoices(JSON.parse(cachedInvoices));
+            } else {
+                setInvoices(mockInvoices);
+                localStorage.setItem('invoices', JSON.stringify(mockInvoices));
+            }
+
         } catch (error) {
-            console.error("Failed to access localStorage or parse patients", error);
+            console.error("Failed to access localStorage or parse data", error);
             setPatients(mockPatients);
+            setAppointments(mockAppointments);
+            setInvoices(mockInvoices);
         }
     }, []);
 
@@ -160,6 +181,8 @@ export default function PatientsPage() {
           {selectedPatient && (
             <PatientDetail 
               patient={selectedPatient}
+              appointments={appointments}
+              invoices={invoices}
               onUpdatePatient={handleUpdatePatient}
               onClose={() => setSelectedPatient(null)}
             />

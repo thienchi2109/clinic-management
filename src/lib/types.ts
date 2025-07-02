@@ -19,6 +19,7 @@ export interface Appointment {
   startTime: string;
   endTime: string;
   status: 'Scheduled' | 'Completed' | 'Cancelled';
+  notes?: string;
 }
 
 export interface Medication {

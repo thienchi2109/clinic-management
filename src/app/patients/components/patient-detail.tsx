@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import type { Patient, PatientDocument } from '@/lib/types';
+import type { Patient, PatientDocument, Appointment, Invoice } from '@/lib/types';
 import {
   DialogHeader,
   DialogTitle,
@@ -24,14 +24,19 @@ import {
   Loader2,
   Trash2,
   Paperclip,
+  History,
 } from 'lucide-react';
-import { calculateAge, formatDate } from '@/lib/utils';
+import { calculateAge, formatDate, formatCurrency } from '@/lib/utils';
 import { PatientForm } from './patient-form';
 import { useToast } from '@/hooks/use-toast';
 import { getSignedURL } from '@/app/actions/r2';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface PatientDetailProps {
   patient: Patient;
+  appointments: Appointment[];
+  invoices: Invoice[];
   onUpdatePatient: (patient: Patient) => void;
   onClose: () => void;
 }
@@ -49,12 +54,24 @@ const translateGender = (gender: Patient['gender']) => {
   }
 };
 
-export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDetailProps) {
+export function PatientDetail({ patient, appointments, invoices, onUpdatePatient, onClose }: PatientDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  const patientHistory = appointments
+    .filter(
+      (app) => app.patientName === patient.name && app.status === 'Completed'
+    )
+    .map((app) => ({
+      ...app,
+      invoice: invoices.find(
+        (inv) => inv.patientName === app.patientName && inv.date === app.date
+      ),
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleSave = (formData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => {
     const updatedPatient = {
@@ -70,7 +87,6 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
     if (file) {
       setFileToUpload(file);
     }
-    // Reset file input to allow uploading the same file again
     event.target.value = '';
   };
   
@@ -98,11 +114,14 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
       });
 
       if (!response.ok) {
-        throw new Error('Upload to R2 failed.');
+        const errorText = await response.text();
+        console.error("Upload to R2 failed with response:", errorText);
+        throw new Error(`Upload to R2 failed. Status: ${response.status}.`);
       }
 
       if (!process.env.NEXT_PUBLIC_R2_PUBLIC_URL) {
-          throw new Error('R2 public URL is not configured on the client. Please set NEXT_PUBLIC_R2_PUBLIC_URL in your .env file.');
+          console.error('R2 public URL is not configured on the client. Please set NEXT_PUBLIC_R2_PUBLIC_URL in your .env file.');
+          throw new Error('Cấu hình phía máy khách bị thiếu.');
       }
 
       const newDocument: PatientDocument = {
@@ -203,6 +222,67 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
             <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">{patient.medicalHistory}</p>
           </div>
         )}
+
+        <Separator />
+        
+        <div>
+            <h4 className="font-semibold flex items-center gap-2 mb-3 text-base">
+                <History className="h-5 w-5 text-primary" />
+                Lịch sử khám bệnh
+            </h4>
+            {patientHistory.length > 0 ? (
+                <Accordion type="single" collapsible className="w-full">
+                    {patientHistory.map((visit) => (
+                        <AccordionItem value={visit.id} key={visit.id}>
+                            <AccordionTrigger>
+                                <div className="flex justify-between w-full pr-4 text-sm">
+                                    <span>Ngày: {formatDate(visit.date)}</span>
+                                    <span className="text-muted-foreground">Bác sĩ: {visit.doctorName}</span>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="space-y-4 pt-2">
+                                {visit.notes && (
+                                    <div>
+                                        <h5 className="font-semibold mb-1 text-sm">Kết quả khám</h5>
+                                        <p className="text-sm bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">{visit.notes}</p>
+                                    </div>
+                                )}
+                                {visit.invoice && (
+                                    <div>
+                                        <h5 className="font-semibold mb-2 text-sm">Dịch vụ & Thanh toán</h5>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Dịch vụ</TableHead>
+                                                    <TableHead className="text-right w-[120px]">Thành tiền</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {visit.invoice.items.map(item => (
+                                                    <TableRow key={item.id}>
+                                                        <TableCell className="py-2">{item.description}</TableCell>
+                                                        <TableCell className="text-right py-2">{formatCurrency(item.amount)}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                <TableRow className="font-bold bg-muted/50">
+                                                    <TableCell className="py-2">Tổng cộng</TableCell>
+                                                    <TableCell className="text-right py-2">{formatCurrency(visit.invoice.amount)}</TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                )}
+                                {!visit.invoice && <p className="text-sm text-muted-foreground">Chưa có thông tin hóa đơn cho lần khám này.</p>}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
+            ) : (
+                <div className="text-center text-sm text-muted-foreground py-6 border-2 border-dashed rounded-lg">
+                    <p>Bệnh nhân chưa có lịch sử khám.</p>
+                </div>
+            )}
+        </div>
 
         <Separator />
 

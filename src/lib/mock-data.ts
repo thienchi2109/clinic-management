@@ -15,8 +15,8 @@ export const documents: PatientDocument[] = [
 
 export const patients: Patient[] = [
   { id: 'PAT001', name: 'Nguyễn Văn An', birthYear: 1979, gender: 'Male', address: '123 Đường Chính, Quận 1, TP.HCM', phone: '0901234567', lastVisit: '2023-10-15', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Tiền sử cao huyết áp, dị ứng với penicillin.', documents: documents.slice(0, 2) },
-  { id: 'PAT002', name: 'Trần Thị Bích', birthYear: 1990, gender: 'Female', address: '456 Đường Sồi, Quận 3, TP.HCM', phone: '0902345678', lastVisit: '2023-11-01', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Không có bệnh mãn tính.', documents: [] },
-  { id: 'PAT003', name: 'Lê Thị Cẩm', birthYear: 1996, gender: 'Female', address: '789 Đường Thông, Quận 5, TP.HCM', phone: '0903456789', lastVisit: '2023-11-20', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Hen suyễn từ nhỏ.', documents: [documents[2]] },
+  { id: 'PAT002', name: 'Trần Thị Bích', birthYear: 1990, gender: 'Female', address: '456 Đường Sồi, Quận 3, TP.HCM', phone: '0902345678', lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Không có bệnh mãn tính.', documents: [] },
+  { id: 'PAT003', name: 'Lê Thị Cẩm', birthYear: 1996, gender: 'Female', address: '789 Đường Thông, Quận 5, TP.HCM', phone: '0903456789', lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Hen suyễn từ nhỏ.', documents: [documents[2]] },
   { id: 'PAT004', name: 'Phạm Văn Dũng', birthYear: 1968, gender: 'Male', address: '101 Đường Phong, Quận 10, TP.HCM', phone: '0904567890', lastVisit: '2023-12-05', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Tiểu đường type 2.', documents: [] },
   { id: 'PAT005', name: 'Hoàng Văn Em', birthYear: 1983, gender: 'Male', address: '212 Đường Bạch Dương, Q.Tân Bình, TP.HCM', phone: '0905678901', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Đau dạ dày, thường xuyên stress.', documents: [] },
 ];
@@ -36,12 +36,12 @@ export const staff: Staff[] = [
 
 export const appointments: Appointment[] = [
   { id: 'APP001', patientName: 'Anh Thắng', doctorName: 'Bs. Hải', date: staticToday, startTime: '07:00', endTime: '07:30', status: 'Scheduled' },
-  { id: 'APP002', patientName: 'Trần Thị Bích', doctorName: 'Bs. Minh', date: staticToday, startTime: '08:00', endTime: '08:45', status: 'Completed' },
+  { id: 'APP002', patientName: 'Trần Thị Bích', doctorName: 'Bs. Minh', date: staticToday, startTime: '08:00', endTime: '08:45', status: 'Completed', notes: 'Viêm họng cấp. Kê đơn kháng sinh và thuốc giảm đau.' },
   { id: 'APP003', patientName: 'Anh Mạnh', doctorName: 'Bs. Hoài', date: staticToday, startTime: '08:30', endTime: '09:00', status: 'Scheduled' },
   { id: 'APP004', patientName: 'Chị Mận', doctorName: 'Bs. Linh', date: staticToday, startTime: '09:15', endTime: '10:15', status: 'Cancelled' },
   { id: 'APP005', patientName: 'Nguyễn Văn An', doctorName: 'Đd. Hạnh', date: staticToday, startTime: '10:30', endTime: '11:15', status: 'Scheduled' },
   { id: 'APP006', patientName: 'Bệnh nhân X', doctorName: 'Đd. Hoa', date: staticToday, startTime: '14:00', endTime: '15:00', status: 'Scheduled' },
-  { id: 'APP007', patientName: 'Lê Thị Cẩm', doctorName: 'Bs. Hải', date: staticToday, startTime: '11:00', endTime: '11:45', status: 'Completed' },
+  { id: 'APP007', patientName: 'Lê Thị Cẩm', doctorName: 'Bs. Hải', date: staticToday, startTime: '11:00', endTime: '11:45', status: 'Completed', notes: 'Kiểm tra định kỳ cho bệnh hen suyễn. Tình trạng ổn định. Tiếp tục dùng thuốc cũ.' },
   { id: 'APP008', patientName: 'Sarah Connor', doctorName: 'Bs. Minh', date: '2024-08-01', startTime: '09:30', endTime: '10:00', status: 'Scheduled' },
   { id: 'APP009', patientName: 'Phạm Văn Dũng', doctorName: 'Bs. An', date: staticToday, startTime: '09:00', endTime: '09:30', status: 'Scheduled' },
   { id: 'APP010', patientName: 'Hoàng Văn Em', doctorName: 'Bs. Bình', date: staticToday, startTime: '13:00', endTime: '14:00', status: 'Scheduled' },
@@ -56,9 +56,9 @@ export const medications: Medication[] = [
 ];
 
 export const invoices: Invoice[] = [
-  { id: 'INV001', patientName: 'Nguyễn Văn An', date: '2023-10-15', items: [{id: '1', description: 'Phí tư vấn', amount: 100}, {id: '2', description: 'Thuốc', amount: 50}], amount: 150.00, status: 'Paid' },
-  { id: 'INV002', patientName: 'Trần Thị Bích', date: '2023-11-01', items: [{id: '1', description: 'Phí tư vấn', amount: 75.50}], amount: 75.50, status: 'Paid' },
-  { id: 'INV003', patientName: 'Lê Thị Cẩm', date: '2023-11-20', items: [{id: '1', description: 'Phí tư vấn', amount: 200}], amount: 200.00, status: 'Pending' },
-  { id: 'INV004', patientName: 'Phạm Văn Dũng', date: '2023-12-05', items: [{id: '1', description: 'Phí tư vấn', amount: 250}, {id: '2', description: 'Xét nghiệm máu', amount: 60.75}], amount: 310.75, status: 'Overdue' },
-  { id: 'INV005', patientName: 'Hoàng Văn Em', date: '2024-01-02', items: [{id: '1', description: 'Phí tư vấn', amount: 50}], amount: 50.00, status: 'Paid' },
+  { id: 'INV001', patientName: 'Nguyễn Văn An', date: '2023-10-15', items: [{id: '1', description: 'Phí tư vấn', amount: 100000}, {id: '2', description: 'Thuốc', amount: 50000}], amount: 150000, status: 'Paid' },
+  { id: 'INV002', patientName: 'Trần Thị Bích', date: staticToday, items: [{id: '1', description: 'Phí khám bệnh', amount: 75000}], amount: 75000, status: 'Paid' },
+  { id: 'INV003', patientName: 'Lê Thị Cẩm', date: staticToday, items: [{id: '1', description: 'Phí tái khám', amount: 200000}], amount: 200000, status: 'Pending' },
+  { id: 'INV004', patientName: 'Phạm Văn Dũng', date: '2023-12-05', items: [{id: '1', description: 'Phí tư vấn', amount: 250000}, {id: '2', description: 'Xét nghiệm máu', amount: 60000}], amount: 310000, status: 'Overdue' },
+  { id: 'INV005', patientName: 'Hoàng Văn Em', date: '2024-01-02', items: [{id: '1', description: 'Phí tư vấn', amount: 50000}], amount: 50000, status: 'Paid' },
 ];
