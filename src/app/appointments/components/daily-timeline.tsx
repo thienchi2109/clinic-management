@@ -3,7 +3,7 @@
 import type { Appointment, Staff, Invoice } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { CalendarSearch } from 'lucide-react';
+import { CalendarSearch, CreditCard } from 'lucide-react';
 import { AppointmentDetail } from './appointment-detail';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -50,13 +50,15 @@ export function DailyTimeline({
   staff,
   onUpdateStatus,
   onUpdateInvoiceStatus,
-  invoices
+  invoices,
+  onCreateInvoice
 }: {
   appointments: Appointment[];
   staff: Staff[];
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
   onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
   invoices: Invoice[];
+  onCreateInvoice: (appointment: Appointment) => void;
 }) {
   const START_HOUR = 7;
   const END_HOUR = 18;
@@ -144,6 +146,7 @@ export function DailyTimeline({
                                         invoice={invoice}
                                         onUpdateStatus={onUpdateStatus}
                                         onUpdateInvoiceStatus={onUpdateInvoiceStatus}
+                                        onCreateInvoice={onCreateInvoice}
                                     />
                                 </Dialog>
                             )

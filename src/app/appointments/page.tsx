@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { appointments as mockAppointments, patients as mockPatients, staff, invoices as mockInvoices } from '@/lib/mock-data';
-import { PlusCircle, Calendar as CalendarIcon, Search, UserPlus, Users } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, Search, UserPlus, Users, CreditCard } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -281,10 +281,10 @@ export default function AppointmentsPage() {
           </div>
         </div>
         <TabsContent value="timeline" className="flex-1 overflow-auto">
-          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} />
+          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} />
         </TabsContent>
         <TabsContent value="table" className="flex-1 overflow-auto">
-          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} />
+          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} />
         </TabsContent>
       </Tabs>
       
@@ -297,6 +297,7 @@ export default function AppointmentsPage() {
                 </DialogHeader>
                 <InvoiceForm
                     patientName={invoiceCandidate.patientName}
+                    date={invoiceCandidate.date}
                     onSave={handleSaveInvoice}
                     onClose={() => setInvoiceCandidate(null)}
                 />

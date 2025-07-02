@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/table';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import type { InvoiceItem } from '@/lib/types';
+import { formatDate } from '@/lib/utils';
 
 const invoiceItemSchema = z.object({
   id: z.string().optional(),
@@ -37,6 +38,7 @@ type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
 interface InvoiceFormProps {
   patientName: string;
+  date: string;
   initialData?: { items: InvoiceItem[] };
   onSave: (invoiceData: InvoiceFormValues, status: 'Paid' | 'Pending') => void;
   onClose: () => void;
@@ -47,7 +49,7 @@ const formatCurrency = (amount: number) => {
 }
 
 
-export function InvoiceForm({ patientName, initialData, onSave, onClose }: InvoiceFormProps) {
+export function InvoiceForm({ patientName, date, initialData, onSave, onClose }: InvoiceFormProps) {
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
@@ -70,8 +72,9 @@ export function InvoiceForm({ patientName, initialData, onSave, onClose }: Invoi
   return (
     <Form {...form}>
       <div className="space-y-4 py-2 pb-4">
-        <div className="p-4 border rounded-lg bg-secondary/50">
+        <div className="p-4 border rounded-lg bg-secondary/50 space-y-1">
             <h3 className="font-semibold">Bệnh nhân: {patientName}</h3>
+            <p className="text-sm text-muted-foreground">Ngày hẹn: {formatDate(date)}</p>
         </div>
 
         <h4 className="font-semibold">Chi tiết hóa đơn</h4>

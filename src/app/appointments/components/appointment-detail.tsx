@@ -63,9 +63,10 @@ interface AppointmentDetailProps {
   invoice?: Invoice;
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
   onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
+  onCreateInvoice: (appointment: Appointment) => void;
 }
 
-export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus, onUpdateInvoiceStatus }: AppointmentDetailProps) {
+export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice }: AppointmentDetailProps) {
   const [currentStatus, setCurrentStatus] = useState<Appointment['status']>(appointment.status);
   const statusInfo = getStatusInfo(currentStatus);
 
@@ -135,46 +136,56 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
                 </Select>
             </div>
 
-            {invoice && (
-                <>
-                    <Separator />
-                    <div className="pt-2 space-y-2">
-                        <h4 className="font-semibold text-sm">Thông tin thanh toán</h4>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm items-center">
-                            <span className="text-muted-foreground">Tổng tiền:</span>
-                            <span className="font-medium text-right">{formatCurrency(invoice.amount)}</span>
-                            
-                            <span className="text-muted-foreground">Trạng thái:</span>
-                            <div className="text-right">
-                                <Badge variant={getInvoiceStatusVariant(invoice.status)}>
-                                    {translateInvoiceStatus(invoice.status)}
-                                </Badge>
-                            </div>
-                            
-                            {invoice.status !== 'Paid' && (
-                                <>
-                                    <span /> {/* Empty cell for alignment */}
-                                    <div className="col-start-2 text-right mt-1">
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary/90" onClick={() => onUpdateInvoiceStatus(invoice.id, 'Paid')}>
-                                                        <CreditCard className="h-4 w-4" />
-                                                        <span className="sr-only">Đánh dấu là đã thanh toán</span>
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Đánh dấu là đã thanh toán</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </div>
-                                </>
-                            )}
+            <Separator />
+            <div className="pt-2 space-y-2">
+                <h4 className="font-semibold text-base">Thông tin thanh toán</h4>
+                {invoice ? (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm items-center">
+                        <span className="text-muted-foreground">Tổng tiền:</span>
+                        <span className="font-medium text-right">{formatCurrency(invoice.amount)}</span>
+                        
+                        <span className="text-muted-foreground">Trạng thái:</span>
+                        <div className="text-right">
+                            <Badge variant={getInvoiceStatusVariant(invoice.status)}>
+                                {translateInvoiceStatus(invoice.status)}
+                            </Badge>
                         </div>
+                        
+                        {invoice.status !== 'Paid' && (
+                            <>
+                                <span /> {/* Empty cell for alignment */}
+                                <div className="col-start-2 text-right mt-1">
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary/90" onClick={() => onUpdateInvoiceStatus(invoice.id, 'Paid')}>
+                                                    <CreditCard className="h-4 w-4" />
+                                                    <span className="sr-only">Đánh dấu là đã thanh toán</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Đánh dấu là đã thanh toán</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                            </>
+                        )}
                     </div>
-                </>
-            )}
+                ) : currentStatus === 'Completed' ? (
+                     <div className="flex flex-col items-start gap-2 pt-1">
+                        <p className="text-sm text-muted-foreground">Chưa có hóa đơn.</p>
+                        <DialogClose asChild>
+                            <Button size="sm" onClick={() => onCreateInvoice(appointment)}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Tạo hóa đơn
+                            </Button>
+                        </DialogClose>
+                    </div>
+                ) : (
+                    <p className="text-sm text-muted-foreground pt-1">Hóa đơn sẽ được tạo sau khi lịch hẹn hoàn thành.</p>
+                )}
+            </div>
 
             {staffMember && (
                  <div className="p-4 border rounded-lg space-y-2 text-sm mt-4">

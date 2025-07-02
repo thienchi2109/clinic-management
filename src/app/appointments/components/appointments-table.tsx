@@ -78,9 +78,10 @@ interface AppointmentsTableProps {
   invoices: Invoice[];
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
   onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
+  onCreateInvoice: (appointment: Appointment) => void;
 }
 
-export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatus, onUpdateInvoiceStatus }: AppointmentsTableProps) {
+export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice }: AppointmentsTableProps) {
   if (appointments.length === 0) {
     return (
       <Card>
@@ -172,6 +173,7 @@ export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatu
                             invoice={invoice}
                             onUpdateStatus={onUpdateStatus}
                             onUpdateInvoiceStatus={onUpdateInvoiceStatus}
+                            onCreateInvoice={onCreateInvoice}
                         />
                     </Dialog>
                 </TableCell>
