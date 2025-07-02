@@ -1,4 +1,3 @@
-// src/app/patients/components/patient-form.tsx
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,18 +22,26 @@ const patientFormSchema = z.object({
 type PatientFormValues = z.infer<typeof patientFormSchema>;
 
 interface PatientFormProps {
-    onSave: (patient: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => void;
+    initialData?: Patient;
+    onSave: (patient: PatientFormValues) => void;
     onClose: () => void;
 }
 
-export function PatientForm({ onSave, onClose }: PatientFormProps) {
+export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) {
     const form = useForm<PatientFormValues>({
         resolver: zodResolver(patientFormSchema),
-        defaultValues: {
+        defaultValues: initialData ? {
+            name: initialData.name,
+            gender: initialData.gender,
+            birthYear: initialData.birthYear,
+            address: initialData.address,
+            phone: initialData.phone,
+            medicalHistory: initialData.medicalHistory || '',
+        } : {
             name: '',
             address: '',
             phone: '',
-            birthYear: '' as any, // Initialize as empty string to be a controlled component
+            birthYear: '' as any,
             gender: undefined,
             medicalHistory: '',
         },

@@ -37,7 +37,8 @@ const translateGender = (gender: Patient['gender']) => {
 
 export default function PatientsPage() {
     const [patients, setPatients] = useState<Patient[]>([]);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
     useEffect(() => {
         try {
@@ -59,7 +60,7 @@ export default function PatientsPage() {
             const newPatient: Patient = {
                 ...newPatientData,
                 id: `PAT${String(prevPatients.length + 1).padStart(3, '0')}`,
-                lastVisit: new Date().toISOString().split('T')[0], // Set last visit to today
+                lastVisit: new Date().toISOString().split('T')[0],
                 avatarUrl: 'https://placehold.co/100x100.png',
             };
             const updatedPatients = [...prevPatients, newPatient];
@@ -71,12 +72,27 @@ export default function PatientsPage() {
             return updatedPatients;
         });
     };
+    
+    const handleUpdatePatient = (updatedPatientData: Patient) => {
+        setPatients(prevPatients => {
+            const updatedPatients = prevPatients.map(p =>
+                p.id === updatedPatientData.id ? updatedPatientData : p
+            );
+            try {
+                localStorage.setItem('patients', JSON.stringify(updatedPatients));
+            } catch (error) {
+                console.error("Failed to save updated patients to localStorage", error);
+            }
+            return updatedPatients;
+        });
+        setSelectedPatient(updatedPatientData);
+    };
   
     return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-headline font-bold">Hồ sơ bệnh nhân</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
                     <UploadCloud className="mr-2 h-4 w-4" />
@@ -90,7 +106,7 @@ export default function PatientsPage() {
                 </DialogHeader>
                 <PatientForm
                     onSave={handleSavePatient}
-                    onClose={() => setIsDialogOpen(false)}
+                    onClose={() => setIsCreateDialogOpen(false)}
                 />
             </DialogContent>
         </Dialog>
@@ -131,20 +147,25 @@ export default function PatientsPage() {
             </CardContent>
             <CardFooter className="flex justify-between items-center">
                 <p className="text-xs text-muted-foreground">Lần khám cuối: {formatDate(patient.lastVisit)}</p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      Xem chi tiết
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-3xl">
-                    <PatientDetail patient={patient} />
-                  </DialogContent>
-                </Dialog>
+                <Button variant="outline" size="sm" onClick={() => setSelectedPatient(patient)}>
+                    Xem chi tiết
+                </Button>
             </CardFooter>
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
+        <DialogContent className="sm:max-w-3xl">
+          {selectedPatient && (
+            <PatientDetail 
+              patient={selectedPatient}
+              onUpdatePatient={handleUpdatePatient}
+              onClose={() => setSelectedPatient(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

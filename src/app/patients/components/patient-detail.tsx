@@ -1,12 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import type { Patient, PatientDocument } from '@/lib/types';
 import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -21,12 +21,16 @@ import {
   Upload,
   FileText,
   Download,
+  Pencil,
 } from 'lucide-react';
 import { calculateAge, formatDate } from '@/lib/utils';
 import { documents as mockDocuments } from '@/lib/mock-data';
+import { PatientForm } from './patient-form';
 
 interface PatientDetailProps {
   patient: Patient;
+  onUpdatePatient: (patient: Patient) => void;
+  onClose: () => void;
 }
 
 const translateGender = (gender: Patient['gender']) => {
@@ -38,9 +42,35 @@ const translateGender = (gender: Patient['gender']) => {
     }
 }
 
-export function PatientDetail({ patient }: PatientDetailProps) {
+export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDetailProps) {
+  const [isEditing, setIsEditing] = useState(false);
   // TODO: Replace with actual documents for the patient
   const patientDocuments = mockDocuments.slice(0, 2);
+
+  const handleSave = (formData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => {
+    const updatedPatient = {
+      ...patient,
+      ...formData,
+    };
+    onUpdatePatient(updatedPatient);
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle>Chỉnh sửa thông tin bệnh nhân</DialogTitle>
+          <DialogDescription>Cập nhật thông tin chi tiết cho {patient.name}.</DialogDescription>
+        </DialogHeader>
+        <PatientForm 
+          initialData={patient}
+          onSave={handleSave}
+          onClose={() => setIsEditing(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -131,10 +161,12 @@ export function PatientDetail({ patient }: PatientDetailProps) {
         </div>
       </div>
 
-      <DialogFooter className="pt-2">
-        <DialogClose asChild>
-          <Button type="button" variant="outline">Đóng</Button>
-        </DialogClose>
+      <DialogFooter className="pt-2 sm:justify-between">
+          <Button type="button" onClick={() => setIsEditing(true)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Sửa
+          </Button>
+          <Button type="button" variant="outline" onClick={onClose}>Đóng</Button>
       </DialogFooter>
     </>
   );
