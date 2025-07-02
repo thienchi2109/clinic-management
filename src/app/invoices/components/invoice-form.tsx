@@ -143,7 +143,7 @@ export function InvoiceForm({ patientName, date, initialData, onSave, onClose }:
         <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Hủy</Button>
             <Button type="button" onClick={form.handleSubmit(data => onSubmit(data, 'Pending'))}>Lưu và chờ thanh toán</Button>
-            <Button type="button" onClick={form.handleSubmit(data => onSubmit(data, 'Paid'))}>Lưu và đánh dấu đã trả</Button>
+            <Button type="button" onClick={form.handleSubmit(data => onSubmit(data, 'Paid'))}>Lưu và đánh dấu đã thanh toán</Button>
         </div>
       </div>
     </Form>
