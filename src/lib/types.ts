@@ -60,4 +60,5 @@ export interface Staff {
   avatarUrl: string;
   phone: string;
   email: string;
+  password: string;
 }

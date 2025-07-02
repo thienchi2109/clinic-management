@@ -22,16 +22,16 @@ export const patients: Patient[] = [
 ];
 
 export const staff: Staff[] = [
-    { id: 'STAFF001', name: 'Bs. Minh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-123-4567', email: 'minh.bs@clinic.com' },
-    { id: 'STAFF002', name: 'Bs. Hải', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-234-5678', email: 'hai.bs@clinic.com' },
-    { id: 'STAFF003', name: 'Bs. Hoài', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-345-6789', email: 'hoai.bs@clinic.com' },
-    { id: 'STAFF004', name: 'Bs. Linh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-456-7890', email: 'linh.bs@clinic.com' },
-    { id: 'STAFF005', name: 'Đd. Hạnh', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-567-8901', email: 'hanh.dd@clinic.com' },
-    { id: 'STAFF006', name: 'Đd. Hoa', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-678-9012', email: 'hoa.dd@clinic.com' },
-    { id: 'STAFF007', name: 'Bs. An', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-789-0123', email: 'an.bs@clinic.com' },
-    { id: 'STAFF008', name: 'Bs. Bình', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-890-1234', email: 'binh.bs@clinic.com' },
-    { id: 'STAFF009', name: 'Đd. Chi', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-901-2345', email: 'chi.dd@clinic.com' },
-    { id: 'STAFF010', name: 'Đd. Dung', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-012-3456', email: 'dung.dd@clinic.com' },
+    { id: 'STAFF001', name: 'Bs. Minh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-123-4567', email: 'minh.bs@clinic.com', password: 'minh123' },
+    { id: 'STAFF002', name: 'Bs. Hải', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-234-5678', email: 'hai.bs@clinic.com', password: 'hai123' },
+    { id: 'STAFF003', name: 'Bs. Hoài', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-345-6789', email: 'hoai.bs@clinic.com', password: 'hoai123' },
+    { id: 'STAFF004', name: 'Bs. Linh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-456-7890', email: 'linh.bs@clinic.com', password: 'linh123' },
+    { id: 'STAFF005', name: 'Đd. Hạnh', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-567-8901', email: 'hanh.dd@clinic.com', password: 'hanh123' },
+    { id: 'STAFF006', name: 'Đd. Hoa', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-678-9012', email: 'hoa.dd@clinic.com', password: 'hoa123' },
+    { id: 'STAFF007', name: 'Bs. An', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-789-0123', email: 'an.bs@clinic.com', password: 'an123' },
+    { id: 'STAFF008', name: 'Bs. Bình', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-890-1234', email: 'binh.bs@clinic.com', password: 'binh123' },
+    { id: 'STAFF009', name: 'Đd. Chi', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-901-2345', email: 'chi.dd@clinic.com', password: 'chi123' },
+    { id: 'STAFF010', name: 'Đd. Dung', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-012-3456', email: 'dung.dd@clinic.com', password: 'dung123' },
 ];
 
 export const appointments: Appointment[] = [

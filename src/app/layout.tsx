@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { MainLayout } from '@/components/layout/main-layout';
+import { AuthWrapper } from '@/components/auth/auth-wrapper';
 
 export const metadata: Metadata = {
   title: 'Quản lý phòng khám',
@@ -28,7 +29,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <MainLayout>{children}</MainLayout>
+        <AuthWrapper>
+          {children}
+        </AuthWrapper>
         <Toaster />
       </body>
     </html>

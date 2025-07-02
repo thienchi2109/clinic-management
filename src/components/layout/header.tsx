@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -16,6 +18,25 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 
 export function Header() {
+  const [staffName, setStaffName] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    // Get staff info from localStorage
+    const name = localStorage.getItem('staffName');
+    setStaffName(name || 'Người dùng');
+  }, []);
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('staffId');
+    localStorage.removeItem('staffName');
+    
+    // Redirect to login
+    router.push('/login');
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-4 text-foreground sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
@@ -39,9 +60,9 @@ export function Header() {
           <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Bác sĩ Smith</p>
+                    <p className="text-sm font-medium leading-none">{staffName}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                        dr.smith@clinic.com
+                        Nhân viên phòng khám
                     </p>
                 </div>
             </DropdownMenuLabel>
@@ -51,7 +72,7 @@ export function Header() {
               <span>Cài đặt</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Đăng xuất</span>
             </DropdownMenuItem>
