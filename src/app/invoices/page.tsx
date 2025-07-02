@@ -18,8 +18,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { invoices as mockInvoices } from '@/lib/mock-data';
-import { Printer, Pencil, CreditCard, PlusCircle } from 'lucide-react';
-import type { Invoice } from '@/lib/types';
+import { Printer, Pencil, CreditCard } from 'lucide-react';
+import type { Invoice, InvoiceItem } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -137,20 +137,25 @@ export default function InvoicesPage() {
         }
     };
     
-    const handleSaveInvoice = (formData: Omit<Invoice, 'id' | 'amount'> & { id?: string }, status: 'Paid' | 'Pending') => {
-        const totalAmount = formData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const handleSaveInvoice = (invoiceData: { items: InvoiceItem[] }, status: 'Paid' | 'Pending') => {
+        if (!editingInvoice) return;
+
+        const totalAmount = invoiceData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         
-        if (editingInvoice) { // Update existing invoice
-            const updatedInvoice: Invoice = {
-                ...editingInvoice,
-                ...formData,
-                amount: totalAmount,
-                status: status,
-            };
-            const updatedInvoices = invoices.map(inv => inv.id === editingInvoice.id ? updatedInvoice : inv);
-            setInvoices(updatedInvoices);
+        const updatedInvoice: Invoice = {
+            ...editingInvoice,
+            items: invoiceData.items,
+            amount: totalAmount,
+            status: status,
+        };
+        const updatedInvoices = invoices.map(inv => inv.id === editingInvoice.id ? updatedInvoice : inv);
+        setInvoices(updatedInvoices);
+        try {
             localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+        } catch (error) {
+            console.error("Failed to save invoices to localStorage", error);
         }
+
         setEditingInvoice(null);
     };
 
@@ -221,7 +226,8 @@ export default function InvoicesPage() {
                     <DialogDescription>Cập nhật chi tiết hóa đơn.</DialogDescription>
                 </DialogHeader>
                 <InvoiceForm
-                    initialData={editingInvoice}
+                    patientName={editingInvoice.patientName}
+                    initialData={{ items: editingInvoice.items }}
                     onSave={handleSaveInvoice}
                     onClose={() => setEditingInvoice(null)}
                 />

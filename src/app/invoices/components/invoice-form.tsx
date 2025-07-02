@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -22,7 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import type { Invoice } from '@/lib/types';
+import type { InvoiceItem } from '@/lib/types';
 
 const invoiceItemSchema = z.object({
   id: z.string().optional(),
@@ -31,15 +30,14 @@ const invoiceItemSchema = z.object({
 });
 
 const invoiceFormSchema = z.object({
-  patientName: z.string(),
   items: z.array(invoiceItemSchema).min(1, 'Hóa đơn phải có ít nhất một mục.'),
 });
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
 interface InvoiceFormProps {
-  patientName?: string;
-  initialData?: Invoice;
+  patientName: string;
+  initialData?: { items: InvoiceItem[] };
   onSave: (invoiceData: InvoiceFormValues, status: 'Paid' | 'Pending') => void;
   onClose: () => void;
 }
@@ -52,9 +50,8 @@ const formatCurrency = (amount: number) => {
 export function InvoiceForm({ patientName, initialData, onSave, onClose }: InvoiceFormProps) {
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: initialData || {
-      patientName: patientName || '',
-      items: [{ description: 'Phí khám bệnh', amount: 100000 }],
+    defaultValues: {
+      items: initialData?.items || [{ description: 'Phí khám bệnh', amount: 100000 }],
     },
   });
 
@@ -74,7 +71,7 @@ export function InvoiceForm({ patientName, initialData, onSave, onClose }: Invoi
     <Form {...form}>
       <div className="space-y-4 py-2 pb-4">
         <div className="p-4 border rounded-lg bg-secondary/50">
-            <h3 className="font-semibold">Bệnh nhân: {initialData?.patientName || patientName}</h3>
+            <h3 className="font-semibold">Bệnh nhân: {patientName}</h3>
         </div>
 
         <h4 className="font-semibold">Chi tiết hóa đơn</h4>
@@ -127,7 +124,7 @@ export function InvoiceForm({ patientName, initialData, onSave, onClose }: Invoi
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => append({ description: '', amount: 0 })}
+          onClick={() => append({ id: new Date().toISOString() , description: '', amount: 0 })}
         >
           <PlusCircle className="mr-2 h-4 w-4" />
           Thêm mục

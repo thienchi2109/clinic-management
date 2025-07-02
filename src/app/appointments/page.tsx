@@ -18,7 +18,7 @@ import { formatDate, calculateAge } from '@/lib/utils';
 import { DailyTimeline } from './components/daily-timeline';
 import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
-import type { Appointment, Patient, Invoice } from '@/lib/types';
+import type { Appointment, Patient, Invoice, InvoiceItem } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentsTable } from './components/appointments-table';
@@ -179,12 +179,16 @@ export default function AppointmentsPage() {
     return newPatient;
   };
   
-  const handleSaveInvoice = (invoiceData: Omit<Invoice, 'id' | 'amount'>, status: 'Paid' | 'Pending') => {
+  const handleSaveInvoice = (invoiceData: { items: InvoiceItem[] }, status: 'Paid' | 'Pending') => {
+    if (!invoiceCandidate) return;
+
     setInvoices(prevInvoices => {
         const totalAmount = invoiceData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         const newInvoice: Invoice = {
-            ...invoiceData,
             id: `INV${String(prevInvoices.length + 1).padStart(3, '0')}`,
+            patientName: invoiceCandidate.patientName,
+            date: invoiceCandidate.date,
+            items: invoiceData.items,
             amount: totalAmount,
             status: status,
         };
