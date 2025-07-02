@@ -124,7 +124,7 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
             </div>
 
              <div className="pt-2 space-y-2">
-                <Label htmlFor="status-select" className="text-sm font-medium">Cập nhật trạng thái</Label>
+                <Label htmlFor="status-select" className="text-sm font-medium">Cập nhật trạng thái lịch hẹn</Label>
                 <Select
                     value={currentStatus}
                     onValueChange={(value) => setCurrentStatus(value as Appointment['status'])}
