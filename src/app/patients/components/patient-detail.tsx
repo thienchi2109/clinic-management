@@ -24,6 +24,7 @@ import {
   Trash2,
   Paperclip,
   History,
+  Loader2,
 } from 'lucide-react';
 import { calculateAge, formatDate, formatCurrency } from '@/lib/utils';
 import { PatientForm } from './patient-form';
@@ -31,7 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { getSignedURL } from '@/app/actions/r2';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Label } from '@/components/ui/label';
 
 interface PatientDetailProps {
   patient: Patient;
@@ -59,6 +59,7 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const patientHistory = appointments
     .filter(
@@ -72,63 +73,8 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
     }))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const handleSave = async (formData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => {
-    let updatedPatient = {
-      ...patient,
-      ...formData,
-    };
-  
-    if (fileToUpload) {
-      try {
-        const signedUrlResult = await getSignedURL({
-          fileType: fileToUpload.type,
-          fileSize: fileToUpload.size,
-          patientId: patient.id,
-        });
-  
-        if (signedUrlResult.failure) {
-          throw new Error(signedUrlResult.failure);
-        }
-        
-        const { url, key } = signedUrlResult.success;
-  
-        const response = await fetch(url, {
-          method: 'PUT',
-          body: fileToUpload,
-          headers: { 'Content-Type': fileToUpload.type },
-        });
-  
-        if (!response.ok) {
-          throw new Error(`Upload to R2 failed. Status: ${response.status}.`);
-        }
-  
-        if (!process.env.NEXT_PUBLIC_R2_PUBLIC_URL) {
-            throw new Error('Cấu hình phía máy khách bị thiếu.');
-        }
-  
-        const newDocument: PatientDocument = {
-          id: key,
-          name: fileToUpload.name,
-          type: 'Tài liệu',
-          uploadDate: new Date().toISOString().split('T')[0],
-          url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${key}`,
-        };
-        
-        const updatedDocuments = [...(patient.documents || []), newDocument];
-        updatedPatient = { ...updatedPatient, documents: updatedDocuments };
-        setFileToUpload(null);
-  
-      } catch (error) {
-        console.error("Upload failed:", error);
-        toast({
-          variant: "destructive",
-          title: "Tải lên thất bại",
-          description: (error as Error).message || "Đã có lỗi xảy ra khi tải tệp lên.",
-        });
-        throw error;
-      }
-    }
-  
+  const handleSavePatientInfo = (formData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => {
+    const updatedPatient = { ...patient, ...formData };
     onUpdatePatient(updatedPatient);
     setIsEditing(false);
     toast({
@@ -142,9 +88,68 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
     if (file) {
       setFileToUpload(file);
     }
-    event.target.value = '';
   };
   
+  const handleUploadFile = async () => {
+    if (!fileToUpload) return;
+    setIsUploading(true);
+
+    try {
+      const signedUrlResult = await getSignedURL({
+        fileType: fileToUpload.type,
+        fileSize: fileToUpload.size,
+        patientId: patient.id,
+      });
+
+      if (signedUrlResult.failure) {
+        throw new Error(signedUrlResult.failure);
+      }
+      
+      const { url, key } = signedUrlResult.success;
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: fileToUpload,
+        headers: { 'Content-Type': fileToUpload.type },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Tải lên R2 thất bại. Trạng thái: ${response.status}.`);
+      }
+
+      if (!process.env.NEXT_PUBLIC_R2_PUBLIC_URL) {
+          throw new Error('Cấu hình phía máy khách bị thiếu.');
+      }
+
+      const newDocument: PatientDocument = {
+        id: key,
+        name: fileToUpload.name,
+        type: 'Tài liệu',
+        uploadDate: new Date().toISOString().split('T')[0],
+        url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${key}`,
+      };
+      
+      const updatedDocuments = [...(patient.documents || []), newDocument];
+      onUpdatePatient({ ...patient, documents: updatedDocuments });
+
+      toast({
+        title: "Tải lên thành công",
+        description: `Tài liệu "${newDocument.name}" đã được thêm vào hồ sơ.`,
+      });
+
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Tải lên thất bại",
+        description: (error as Error).message || "Đã có lỗi xảy ra khi tải tệp lên.",
+      });
+    } finally {
+      setIsUploading(false);
+      setFileToUpload(null);
+    }
+  };
+
   const handleDeleteDocument = (documentId: string) => {
     const updatedDocuments = patient.documents?.filter(doc => doc.id !== documentId);
     onUpdatePatient({ ...patient, documents: updatedDocuments });
@@ -164,33 +169,9 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
         <div className="py-4 max-h-[60vh] overflow-y-auto pr-4">
           <PatientForm 
             initialData={patient} 
-            onSave={handleSave} 
-            onClose={() => {
-              setIsEditing(false);
-              setFileToUpload(null);
-            }}
-          >
-            <div className="space-y-2">
-              <Label>Đính kèm tài liệu</Label>
-              {!fileToUpload ? (
-                  <Button type="button" variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Chọn tệp...
-                  </Button>
-              ) : (
-                  <div className="flex items-center justify-between p-2 pl-3 border rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                          <Paperclip className="h-4 w-4 flex-shrink-0" />
-                          <span className="text-sm font-medium truncate">{fileToUpload.name}</span>
-                      </div>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 flex-shrink-0 text-destructive hover:text-destructive/80" onClick={() => setFileToUpload(null)}>
-                          <Trash2 className="h-4 w-4" />
-                      </Button>
-                  </div>
-              )}
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-            </div>
-          </PatientForm>
+            onSave={handleSavePatientInfo} 
+            onClose={() => setIsEditing(false)}
+          />
         </div>
       </>
     );
@@ -314,7 +295,28 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
               <FileText className="h-5 w-5 text-primary" />
               Tài liệu & Kết quả khám
             </h4>
+            <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="mr-2 h-4 w-4" />
+              Tải lên
+            </Button>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
           </div>
+
+          {fileToUpload && (
+            <div className="flex items-center justify-between p-2 pl-3 mb-3 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2 overflow-hidden">
+                  <Paperclip className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm font-medium truncate">{fileToUpload.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <Button size="sm" onClick={handleUploadFile} disabled={isUploading}>
+                    {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                    Lưu tài liệu
+                 </Button>
+                 <Button size="sm" variant="ghost" onClick={() => setFileToUpload(null)} disabled={isUploading}>Hủy</Button>
+              </div>
+            </div>
+          )}
 
           {(patient.documents && patient.documents.length > 0) ? (
             <ul className="space-y-2">
@@ -341,9 +343,11 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
               ))}
             </ul>
           ) : (
-            <div className="text-center text-sm text-muted-foreground py-6 border-2 border-dashed rounded-lg">
-              <p>Chưa có tài liệu nào được tải lên.</p>
-            </div>
+             !fileToUpload && (
+                <div className="text-center text-sm text-muted-foreground py-6 border-2 border-dashed rounded-lg">
+                  <p>Chưa có tài liệu nào được tải lên.</p>
+                </div>
+            )
           )}
         </div>
       </div>

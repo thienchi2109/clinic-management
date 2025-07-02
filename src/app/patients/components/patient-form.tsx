@@ -27,10 +27,9 @@ interface PatientFormProps {
     initialData?: Patient;
     onSave: (patient: PatientFormValues) => Promise<void> | void;
     onClose: () => void;
-    children?: React.ReactNode;
 }
 
-export function PatientForm({ initialData, onSave, onClose, children }: PatientFormProps) {
+export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) {
     const [isSaving, setIsSaving] = React.useState(false);
     
     const form = useForm<PatientFormValues>({
@@ -117,8 +116,6 @@ export function PatientForm({ initialData, onSave, onClose, children }: PatientF
                         <FormMessage />
                     </FormItem>
                 )} />
-
-                {children}
 
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>Hủy</Button>
