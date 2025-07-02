@@ -16,7 +16,7 @@ const MAX_FILE_SIZE = 1024 * 1024 * 50;
 
 const s3Client = new S3Client({
   region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint: process.env.R2_ENDPOINT!,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
@@ -28,7 +28,7 @@ export async function getSignedURL(
 ) {
   const { fileType, fileSize, patientId } = getSignedURLSchema.parse(props);
   
-  if (!process.env.R2_BUCKET_NAME || !process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+  if (!process.env.R2_BUCKET_NAME || !process.env.R2_ENDPOINT || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
     return { failure: 'Cloudflare R2 is not configured on the server.' };
   }
   
