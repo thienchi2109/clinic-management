@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DialogFooter } from '@/components/ui/dialog';
 import type { Patient } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
+import { Loader2 } from 'lucide-react';
+import React from 'react';
 
 const patientFormSchema = z.object({
   name: z.string().min(2, { message: 'Tên bệnh nhân phải có ít nhất 2 ký tự.' }),
@@ -23,11 +25,14 @@ type PatientFormValues = z.infer<typeof patientFormSchema>;
 
 interface PatientFormProps {
     initialData?: Patient;
-    onSave: (patient: PatientFormValues) => void;
+    onSave: (patient: PatientFormValues) => Promise<void> | void;
     onClose: () => void;
+    children?: React.ReactNode;
 }
 
-export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) {
+export function PatientForm({ initialData, onSave, onClose, children }: PatientFormProps) {
+    const [isSaving, setIsSaving] = React.useState(false);
+    
     const form = useForm<PatientFormValues>({
         resolver: zodResolver(patientFormSchema),
         defaultValues: initialData ? {
@@ -47,14 +52,20 @@ export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) 
         },
     });
 
-    function onSubmit(data: PatientFormValues) {
-        onSave(data);
-        onClose();
+    async function onSubmit(data: PatientFormValues) {
+        setIsSaving(true);
+        try {
+            await onSave(data);
+        } catch (error) {
+            // Error is already handled by the parent component's toast
+        } finally {
+            setIsSaving(false);
+        }
     }
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2 pb-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField control={form.control} name="name" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Họ và tên</FormLabel>
@@ -106,9 +117,15 @@ export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) 
                         <FormMessage />
                     </FormItem>
                 )} />
+
+                {children}
+
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={onClose}>Hủy</Button>
-                    <Button type="submit">{initialData ? 'Lưu thay đổi' : 'Thêm bệnh nhân'}</Button>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>Hủy</Button>
+                    <Button type="submit" disabled={isSaving}>
+                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSaving ? 'Đang lưu...' : (initialData ? 'Lưu thay đổi' : 'Thêm bệnh nhân')}
+                    </Button>
                 </DialogFooter>
             </form>
         </Form>
