@@ -49,11 +49,13 @@ export function DailyTimeline({
   appointments,
   staff,
   onUpdateStatus,
+  onUpdateInvoiceStatus,
   invoices
 }: {
   appointments: Appointment[];
   staff: Staff[];
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
+  onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
   invoices: Invoice[];
 }) {
   const START_HOUR = 7;
@@ -136,7 +138,13 @@ export function DailyTimeline({
                                             )}
                                         </div>
                                     </DialogTrigger>
-                                    <AppointmentDetail appointment={appointment} staffMember={appointmentStaff} onUpdateStatus={onUpdateStatus} invoice={invoice} />
+                                    <AppointmentDetail 
+                                        appointment={appointment} 
+                                        staffMember={appointmentStaff} 
+                                        invoice={invoice}
+                                        onUpdateStatus={onUpdateStatus}
+                                        onUpdateInvoiceStatus={onUpdateInvoiceStatus}
+                                    />
                                 </Dialog>
                             )
                         })}

@@ -22,8 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { PlusCircle, Trash2 } from 'lucide-react';
-import { useEffect } from 'react';
-import type { Invoice, InvoiceItem } from '@/lib/types';
+import type { Invoice } from '@/lib/types';
 
 const invoiceItemSchema = z.object({
   id: z.string().optional(),
@@ -39,8 +38,9 @@ const invoiceFormSchema = z.object({
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
 interface InvoiceFormProps {
-  patientName: string;
-  onSave: (invoiceData: Omit<Invoice, 'id' | 'amount'>, status: 'Paid' | 'Pending') => void;
+  patientName?: string;
+  initialData?: Invoice;
+  onSave: (invoiceData: InvoiceFormValues, status: 'Paid' | 'Pending') => void;
   onClose: () => void;
 }
 
@@ -49,11 +49,11 @@ const formatCurrency = (amount: number) => {
 }
 
 
-export function InvoiceForm({ patientName, onSave, onClose }: InvoiceFormProps) {
+export function InvoiceForm({ patientName, initialData, onSave, onClose }: InvoiceFormProps) {
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: {
-      patientName: patientName,
+    defaultValues: initialData || {
+      patientName: patientName || '',
       items: [{ description: 'Phí khám bệnh', amount: 100000 }],
     },
   });
@@ -67,19 +67,14 @@ export function InvoiceForm({ patientName, onSave, onClose }: InvoiceFormProps) 
   const totalAmount = watchedItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
   function onSubmit(data: InvoiceFormValues, status: 'Paid' | 'Pending') {
-    const invoiceData = {
-        ...data,
-        date: new Date().toISOString().split('T')[0],
-        items: data.items.map((item, index) => ({...item, id: `item-${index}`}))
-    }
-    onSave(invoiceData, status);
+    onSave(data, status);
   }
 
   return (
     <Form {...form}>
       <div className="space-y-4 py-2 pb-4">
         <div className="p-4 border rounded-lg bg-secondary/50">
-            <h3 className="font-semibold">Bệnh nhân: {patientName}</h3>
+            <h3 className="font-semibold">Bệnh nhân: {initialData?.patientName || patientName}</h3>
         </div>
 
         <h4 className="font-semibold">Chi tiết hóa đơn</h4>

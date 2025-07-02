@@ -61,9 +61,10 @@ interface AppointmentDetailProps {
   staffMember?: Staff;
   invoice?: Invoice;
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
+  onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
 }
 
-export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus }: AppointmentDetailProps) {
+export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus, onUpdateInvoiceStatus }: AppointmentDetailProps) {
   const [currentStatus, setCurrentStatus] = useState<Appointment['status']>(appointment.status);
   const statusInfo = getStatusInfo(currentStatus);
 
@@ -137,7 +138,14 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
                 <>
                     <Separator />
                     <div className="pt-2 space-y-2">
-                        <h4 className="font-semibold text-sm">Thông tin thanh toán</h4>
+                        <div className="flex justify-between items-center">
+                            <h4 className="font-semibold text-sm">Thông tin thanh toán</h4>
+                            {invoice.status !== 'Paid' && (
+                                <Button size="sm" onClick={() => onUpdateInvoiceStatus(invoice.id, 'Paid')}>
+                                    Đánh dấu đã trả
+                                </Button>
+                            )}
+                        </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                             <span className="text-muted-foreground">Tổng tiền:</span>
                             <span className="font-medium text-right">{formatCurrency(invoice.amount)}</span>

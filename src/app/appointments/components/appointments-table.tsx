@@ -72,7 +72,15 @@ const translateInvoiceStatus = (status: Invoice['status']) => {
     }
 }
 
-export function AppointmentsTable({ appointments, staff, onUpdateStatus, invoices }: { appointments: Appointment[], staff: Staff[], onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void; invoices: Invoice[] }) {
+interface AppointmentsTableProps {
+  appointments: Appointment[];
+  staff: Staff[];
+  invoices: Invoice[];
+  onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
+  onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
+}
+
+export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatus, onUpdateInvoiceStatus }: AppointmentsTableProps) {
   if (appointments.length === 0) {
     return (
       <Card>
@@ -158,7 +166,13 @@ export function AppointmentsTable({ appointments, staff, onUpdateStatus, invoice
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <AppointmentDetail appointment={appointment} staffMember={staffMember} onUpdateStatus={onUpdateStatus} invoice={invoice} />
+                        <AppointmentDetail 
+                            appointment={appointment} 
+                            staffMember={staffMember} 
+                            invoice={invoice}
+                            onUpdateStatus={onUpdateStatus}
+                            onUpdateInvoiceStatus={onUpdateInvoiceStatus}
+                        />
                     </Dialog>
                 </TableCell>
               </TableRow>

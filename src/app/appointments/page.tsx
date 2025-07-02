@@ -131,7 +131,11 @@ export default function AppointmentsPage() {
     }
 
     if (newStatus === 'Completed' && appointmentForInvoice) {
-        setInvoiceCandidate(appointmentForInvoice);
+        const existingInvoice = invoices.find(inv => inv.patientName === appointmentForInvoice!.patientName && inv.date === appointmentForInvoice!.date);
+        if (!existingInvoice) {
+            setInvoiceCandidate(appointmentForInvoice);
+        }
+
         const updatedPatients = patients.map(p =>
             p.name === appointmentForInvoice!.patientName
             ? { ...p, lastVisit: appointmentForInvoice!.date }
@@ -143,6 +147,18 @@ export default function AppointmentsPage() {
         } catch (error) {
             console.error("Failed to save updated patients to localStorage", error);
         }
+    }
+  };
+
+  const handleUpdateInvoiceStatus = (invoiceId: string, newStatus: Invoice['status']) => {
+    const updatedInvoices = invoices.map(inv =>
+      inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+    );
+    setInvoices(updatedInvoices);
+    try {
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+    } catch (error) {
+      console.error("Failed to save invoice status to localStorage", error);
     }
   };
 
@@ -261,10 +277,10 @@ export default function AppointmentsPage() {
           </div>
         </div>
         <TabsContent value="timeline" className="flex-1 overflow-auto">
-          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} invoices={invoices} />
+          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} />
         </TabsContent>
         <TabsContent value="table" className="flex-1 overflow-auto">
-          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} invoices={invoices} />
+          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} />
         </TabsContent>
       </Tabs>
       

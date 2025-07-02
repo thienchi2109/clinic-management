@@ -1,4 +1,5 @@
 'use client';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -16,8 +17,8 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { invoices } from '@/lib/mock-data';
-import { Printer } from 'lucide-react';
+import { invoices as mockInvoices } from '@/lib/mock-data';
+import { Printer, Pencil, CreditCard, PlusCircle } from 'lucide-react';
 import type { Invoice } from '@/lib/types';
 import {
   Dialog,
@@ -29,11 +30,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { formatDate } from '@/lib/utils';
+import { InvoiceForm } from './components/invoice-form';
 
 const getStatusVariant = (status: Invoice['status']) => {
   switch (status) {
     case 'Paid':
-      return 'default';
+      return 'accent';
     case 'Pending':
       return 'secondary';
     case 'Overdue':
@@ -105,6 +107,53 @@ const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
 
 
 export default function InvoicesPage() {
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+
+    useEffect(() => {
+        try {
+            const cachedInvoices = localStorage.getItem('invoices');
+            if (cachedInvoices) {
+                setInvoices(JSON.parse(cachedInvoices));
+            } else {
+                setInvoices(mockInvoices);
+                localStorage.setItem('invoices', JSON.stringify(mockInvoices));
+            }
+        } catch (error) {
+            console.error("Failed to access localStorage or parse invoices", error);
+            setInvoices(mockInvoices);
+        }
+    }, []);
+
+    const handleUpdateInvoiceStatus = (invoiceId: string, newStatus: Invoice['status']) => {
+        const updatedInvoices = invoices.map(inv =>
+          inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+        );
+        setInvoices(updatedInvoices);
+        try {
+          localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+        } catch (error) {
+          console.error("Failed to save invoice status to localStorage", error);
+        }
+    };
+    
+    const handleSaveInvoice = (formData: Omit<Invoice, 'id' | 'amount'> & { id?: string }, status: 'Paid' | 'Pending') => {
+        const totalAmount = formData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        
+        if (editingInvoice) { // Update existing invoice
+            const updatedInvoice: Invoice = {
+                ...editingInvoice,
+                ...formData,
+                amount: totalAmount,
+                status: status,
+            };
+            const updatedInvoices = invoices.map(inv => inv.id === editingInvoice.id ? updatedInvoice : inv);
+            setInvoices(updatedInvoices);
+            localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+        }
+        setEditingInvoice(null);
+    };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -115,7 +164,7 @@ export default function InvoicesPage() {
         <CardHeader>
           <CardTitle>Tất cả hóa đơn</CardTitle>
           <CardDescription>
-            Xem lại lịch sử thanh toán của bệnh nhân.
+            Xem lại và quản lý lịch sử thanh toán của bệnh nhân.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -149,6 +198,14 @@ export default function InvoicesPage() {
                         </DialogTrigger>
                         <InvoiceDialog invoice={invoice} />
                     </Dialog>
+                    <Button variant="ghost" size="sm" onClick={() => setEditingInvoice(invoice)}>
+                        <Pencil className="mr-1 h-3 w-3" />Sửa
+                    </Button>
+                    {invoice.status !== 'Paid' && (
+                        <Button variant="ghost" size="sm" onClick={() => handleUpdateInvoiceStatus(invoice.id, 'Paid')}>
+                             <CreditCard className="mr-1 h-3 w-3" />Thanh toán
+                        </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -156,6 +213,21 @@ export default function InvoicesPage() {
           </Table>
         </CardContent>
       </Card>
+      {editingInvoice && (
+        <Dialog open={!!editingInvoice} onOpenChange={(open) => !open && setEditingInvoice(null)}>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Sửa hóa đơn #{editingInvoice.id}</DialogTitle>
+                    <DialogDescription>Cập nhật chi tiết hóa đơn.</DialogDescription>
+                </DialogHeader>
+                <InvoiceForm
+                    initialData={editingInvoice}
+                    onSave={handleSaveInvoice}
+                    onClose={() => setEditingInvoice(null)}
+                />
+            </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
