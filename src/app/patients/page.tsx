@@ -10,9 +10,9 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { patients as mockPatients, documents } from '@/lib/mock-data';
+import { patients as mockPatients } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FileText, UploadCloud, Bell, Phone, MapPin, HeartPulse } from 'lucide-react';
+import { UploadCloud, Bell, Phone, MapPin, HeartPulse } from 'lucide-react';
 import type { Patient } from '@/lib/types';
 import { formatDate, calculateAge } from '@/lib/utils';
 import {
@@ -127,24 +127,6 @@ export default function PatientsPage() {
                         </div>
                     )}
                 </div>
-                <div>
-                    <h4 className="text-sm font-semibold mb-2 text-primary">Tài liệu gần đây</h4>
-                    <div className="space-y-2">
-                        {documents.slice(0, 1).map(doc => (
-                            <div key={doc.id} className="flex items-center justify-between p-2 rounded-md border">
-                                <div className="flex items-center gap-2">
-                                    <FileText className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{doc.name}</span>
-                                </div>
-                                <Button variant="ghost" size="sm">Xem</Button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                 <Button variant="outline" className="w-full mt-4">
-                    <UploadCloud className="mr-2 h-4 w-4" />
-                    Tải lên tài liệu
-                </Button>
             </CardContent>
             <CardFooter className="flex justify-between">
                 <p className="text-xs text-muted-foreground">Lần khám cuối: {formatDate(patient.lastVisit)}</p>
