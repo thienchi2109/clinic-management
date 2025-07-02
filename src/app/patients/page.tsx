@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { patients as mockPatients } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UploadCloud, Bell, Phone, MapPin, HeartPulse } from 'lucide-react';
+import { UploadCloud, Phone, MapPin, HeartPulse } from 'lucide-react';
 import type { Patient } from '@/lib/types';
 import { formatDate, calculateAge } from '@/lib/utils';
 import {
@@ -24,6 +24,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { PatientForm } from './components/patient-form';
+import { PatientDetail } from './components/patient-detail';
 
 const translateGender = (gender: Patient['gender']) => {
     switch(gender) {
@@ -123,17 +124,23 @@ export default function PatientsPage() {
                     {patient.medicalHistory && (
                         <div className="flex items-start gap-2 pt-2">
                             <HeartPulse className="h-4 w-4 flex-shrink-0 mt-0.5 text-primary" />
-                            <p className="text-sm text-foreground">{patient.medicalHistory}</p>
+                            <p className="text-sm text-foreground line-clamp-2">{patient.medicalHistory}</p>
                         </div>
                     )}
                 </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex justify-between items-center">
                 <p className="text-xs text-muted-foreground">Lần khám cuối: {formatDate(patient.lastVisit)}</p>
-                <Button variant="secondary" size="sm">
-                  <Bell className="mr-2 h-4 w-4" />
-                  Nhắc nhở
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="secondary" size="sm">
+                      Xem chi tiết
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-3xl">
+                    <PatientDetail patient={patient} />
+                  </DialogContent>
+                </Dialog>
             </CardFooter>
           </Card>
         ))}
