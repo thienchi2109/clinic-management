@@ -230,7 +230,9 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
                 <li key={doc.id} className="flex items-center justify-between p-2 border rounded-md hover:bg-muted/50">
                   <div className="flex items-center gap-2 overflow-hidden">
                     <Badge variant="secondary">{doc.type}</Badge>
-                    <span className="font-medium text-sm truncate">{doc.name}</span>
+                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-medium text-sm truncate text-primary hover:underline">
+                        {doc.name}
+                    </a>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-xs text-muted-foreground">Tải lên: {formatDate(doc.uploadDate)}</span>
