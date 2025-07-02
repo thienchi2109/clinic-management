@@ -8,6 +8,7 @@ export interface Patient {
   lastVisit: string;
   avatarUrl: string;
   medicalHistory?: string;
+  documents?: PatientDocument[];
 }
 
 export interface Appointment {
@@ -46,7 +47,7 @@ export interface Invoice {
 export interface PatientDocument {
   id: string;
   name: string;
-  type: 'Ultrasound' | 'X-Ray' | 'Blood Test' | 'Prescription';
+  type: 'Ultrasound' | 'X-Ray' | 'Blood Test' | 'Prescription' | 'Tài liệu';
   uploadDate: string;
   url: string;
 }
