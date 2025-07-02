@@ -1,9 +1,10 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { appointments as mockAppointments, patients as mockPatients, staff, invoices as mockInvoices } from '@/lib/mock-data';
-import { PlusCircle, Calendar as CalendarIcon, Search, UserPlus, Users, CreditCard } from 'lucide-react';
+import { appointments as mockAppointments, patients as mockPatients, staff as mockStaff, invoices as mockInvoices } from '@/lib/mock-data';
+import { PlusCircle, Calendar as CalendarIcon, Search, UserPlus, Users, CreditCard, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import { formatDate, calculateAge } from '@/lib/utils';
 import { DailyTimeline } from './components/daily-timeline';
 import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
-import type { Appointment, Patient, Invoice, InvoiceItem } from '@/lib/types';
+import type { Appointment, Patient, Invoice, InvoiceItem, Staff } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentsTable } from './components/appointments-table';
@@ -31,6 +32,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { addDoc, collection, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { seedAndFetchCollection } from '@/lib/firestore-utils';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function AppointmentsPage() {
@@ -38,9 +43,12 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
   const [walkInQueue, setWalkInQueue] = useState<Patient[]>([]);
   const [isWalkInDialogOpen, setIsWalkInDialogOpen] = useState(false);
@@ -51,26 +59,32 @@ export default function AppointmentsPage() {
   useEffect(() => {
     setDate(new Date());
 
-    const loadData = (key: string, mockData: any[]) => {
-      try {
-        const cachedData = localStorage.getItem(key);
-        if (cachedData) {
-          return JSON.parse(cachedData);
-        } else {
-          localStorage.setItem(key, JSON.stringify(mockData));
-          return mockData;
+    async function loadData() {
+        try {
+            const [patientsData, appointmentsData, invoicesData, staffData] = await Promise.all([
+                seedAndFetchCollection('patients', mockPatients),
+                seedAndFetchCollection('appointments', mockAppointments),
+                seedAndFetchCollection('invoices', mockInvoices),
+                seedAndFetchCollection('staff', mockStaff),
+            ]);
+            setPatients(patientsData);
+            setAppointments(appointmentsData);
+            setInvoices(invoicesData);
+            setStaff(staffData);
+        } catch (error) {
+            console.error("Failed to load data from Firestore", error);
+            toast({
+                variant: 'destructive',
+                title: 'Lỗi tải dữ liệu',
+                description: 'Không thể tải dữ liệu từ máy chủ.'
+            });
+        } finally {
+            setLoading(false);
         }
-      } catch (error) {
-        console.error(`Failed to access localStorage or parse ${key}`, error);
-        return mockData;
-      }
-    };
-    
-    setAppointments(loadData('appointments', mockAppointments));
-    setPatients(loadData('patients', mockPatients));
-    setInvoices(loadData('invoices', mockInvoices));
+    }
+    loadData();
 
-  }, []);
+  }, [toast]);
 
   const selectedDateString = date ? format(date, 'yyyy-MM-dd') : '';
 
@@ -94,26 +108,32 @@ export default function AppointmentsPage() {
       return [];
     }
     return staff.filter((s) => staffNamesOnSchedule.includes(s.name));
-  }, [appointmentsForSelectedDate]);
+  }, [appointmentsForSelectedDate, staff]);
 
-  const handleSaveAppointment = (newAppointmentData: Omit<Appointment, 'id' | 'status'>) => {
-    setAppointments(prevAppointments => {
-        const newAppointment: Appointment = {
+  const handleSaveAppointment = async (newAppointmentData: Omit<Appointment, 'id' | 'status'>) => {
+    try {
+        const appointmentToAdd = {
             ...newAppointmentData,
-            id: `APP${String(prevAppointments.length + 1).padStart(3, '0')}`,
-            status: 'Scheduled',
+            status: 'Scheduled' as Appointment['status'],
         };
-        const updatedAppointments = [...prevAppointments, newAppointment];
-        try {
-            localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-        } catch (error) {
-            console.error("Failed to save appointments to localStorage", error);
-        }
-        return updatedAppointments;
-    });
+        const docRef = await addDoc(collection(db, 'appointments'), appointmentToAdd);
+        const newAppointment = { ...appointmentToAdd, id: docRef.id };
+        setAppointments(prev => [...prev, newAppointment]);
+        toast({
+            title: 'Lưu thành công',
+            description: 'Lịch hẹn đã được tạo.',
+        });
+    } catch (error) {
+        console.error("Error adding appointment: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Lỗi',
+            description: 'Không thể tạo lịch hẹn mới.',
+        });
+    }
   };
   
-  const handleUpdateAppointmentStatus = (appointmentId: string, newStatus: Appointment['status']) => {
+  const handleUpdateAppointmentStatus = async (appointmentId: string, newStatus: Appointment['status']) => {
     let appointmentForInvoice: Appointment | undefined;
     const updatedAppointments = appointments.map(app => {
       if (app.id === appointmentId) {
@@ -123,84 +143,118 @@ export default function AppointmentsPage() {
       return app;
     });
 
-    setAppointments(updatedAppointments);
     try {
-      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    } catch (error) {
-      console.error("Failed to save appointment status to localStorage", error);
-    }
+        const appointmentRef = doc(db, 'appointments', appointmentId);
+        await updateDoc(appointmentRef, { status: newStatus });
+        setAppointments(updatedAppointments);
 
-    if (newStatus === 'Completed' && appointmentForInvoice) {
-        const existingInvoice = invoices.find(inv => inv.patientName === appointmentForInvoice!.patientName && inv.date === appointmentForInvoice!.date);
-        if (!existingInvoice) {
-            setInvoiceCandidate(appointmentForInvoice);
+        toast({
+            title: 'Cập nhật thành công',
+            description: 'Trạng thái lịch hẹn đã được thay đổi.',
+        });
+
+        if (newStatus === 'Completed' && appointmentForInvoice) {
+            const existingInvoice = invoices.find(inv => inv.patientName === appointmentForInvoice!.patientName && inv.date === appointmentForInvoice!.date);
+            if (!existingInvoice) {
+                setInvoiceCandidate(appointmentForInvoice);
+            }
+    
+            const patientToUpdate = patients.find(p => p.name === appointmentForInvoice!.patientName);
+            if (patientToUpdate) {
+                const patientRef = doc(db, 'patients', patientToUpdate.id);
+                await updateDoc(patientRef, { lastVisit: appointmentForInvoice.date });
+                
+                const updatedPatients = patients.map(p => p.id === patientToUpdate.id ? { ...p, lastVisit: appointmentForInvoice!.date } : p);
+                setPatients(updatedPatients);
+            }
         }
+    } catch (error) {
+        console.error("Error updating appointment status: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Lỗi',
+            description: 'Không thể cập nhật trạng thái lịch hẹn.',
+        });
+    }
+  };
 
-        const updatedPatients = patients.map(p =>
-            p.name === appointmentForInvoice!.patientName
-            ? { ...p, lastVisit: appointmentForInvoice!.date }
-            : p
+  const handleUpdateInvoiceStatus = async (invoiceId: string, newStatus: Invoice['status']) => {
+    try {
+        const invoiceRef = doc(db, 'invoices', invoiceId);
+        await updateDoc(invoiceRef, { status: newStatus });
+        const updatedInvoices = invoices.map(inv =>
+          inv.id === invoiceId ? { ...inv, status: newStatus } : inv
         );
-        setPatients(updatedPatients);
-        try {
-            localStorage.setItem('patients', JSON.stringify(updatedPatients));
-        } catch (error) {
-            console.error("Failed to save updated patients to localStorage", error);
-        }
+        setInvoices(updatedInvoices);
+        toast({
+            title: 'Thanh toán thành công',
+            description: 'Trạng thái hóa đơn đã được cập nhật.',
+        });
+    } catch (error) {
+        console.error("Error updating invoice status: ", error);
+         toast({
+            variant: 'destructive',
+            title: 'Lỗi',
+            description: 'Không thể cập nhật trạng thái hóa đơn.',
+        });
     }
   };
 
-  const handleUpdateInvoiceStatus = (invoiceId: string, newStatus: Invoice['status']) => {
-    const updatedInvoices = invoices.map(inv =>
-      inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-    );
-    setInvoices(updatedInvoices);
+  const handleSavePatient = async (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>): Promise<Patient> => {
     try {
-      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+        const patientToAdd = {
+            ...patientData,
+            lastVisit: new Date().toISOString().split('T')[0],
+            avatarUrl: 'https://placehold.co/100x100.png',
+            documents: [],
+        };
+        const docRef = await addDoc(collection(db, 'patients'), patientToAdd);
+        const newPatient = { ...patientToAdd, id: docRef.id };
+        setPatients(prev => [...prev, newPatient]);
+        toast({
+            title: 'Thêm thành công',
+            description: `Hồ sơ bệnh nhân ${newPatient.name} đã được tạo.`,
+        });
+        return newPatient;
     } catch (error) {
-      console.error("Failed to save invoice status to localStorage", error);
+        console.error("Error adding patient: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Thêm thất bại',
+            description: 'Đã có lỗi xảy ra khi thêm bệnh nhân mới.',
+        });
+        throw error; // Re-throw error to be caught by the caller form
     }
-  };
-
-  const handleSavePatient = (newPatientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>): Patient => {
-    const newPatient: Patient = {
-        ...newPatientData,
-        id: `PAT${String(patients.length + 1).padStart(3, '0')}`,
-        lastVisit: new Date().toISOString().split('T')[0],
-        avatarUrl: 'https://placehold.co/100x100.png',
-    };
-    const updatedPatients = [...patients, newPatient];
-    setPatients(updatedPatients);
-    try {
-        localStorage.setItem('patients', JSON.stringify(updatedPatients));
-    } catch (error) {
-        console.error("Failed to save patients to localStorage", error);
-    }
-    return newPatient;
   };
   
-  const handleSaveInvoice = (invoiceData: { items: InvoiceItem[] }, status: 'Paid' | 'Pending') => {
+  const handleSaveInvoice = async (invoiceData: { items: InvoiceItem[] }, status: 'Paid' | 'Pending') => {
     if (!invoiceCandidate) return;
 
-    setInvoices(prevInvoices => {
+    try {
         const totalAmount = invoiceData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-        const newInvoice: Invoice = {
-            id: `INV${String(prevInvoices.length + 1).padStart(3, '0')}`,
+        const invoiceToAdd = {
             patientName: invoiceCandidate.patientName,
             date: invoiceCandidate.date,
             items: invoiceData.items,
             amount: totalAmount,
             status: status,
         };
-        const updatedInvoices = [...prevInvoices, newInvoice];
-        try {
-            localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-        } catch (error) {
-            console.error("Failed to save invoices to localStorage", error);
-        }
-        return updatedInvoices;
-    });
-    setInvoiceCandidate(null);
+        const docRef = await addDoc(collection(db, 'invoices'), invoiceToAdd);
+        const newInvoice = { ...invoiceToAdd, id: docRef.id };
+        setInvoices(prev => [...prev, newInvoice]);
+        setInvoiceCandidate(null);
+        toast({
+            title: 'Tạo hóa đơn thành công',
+            description: `Hóa đơn cho ${newInvoice.patientName} đã được tạo.`,
+        });
+    } catch (error) {
+        console.error("Error adding invoice: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Lỗi',
+            description: 'Không thể tạo hóa đơn mới.',
+        });
+    }
   };
 
   const handleAddToWalkInQueue = (patient: Patient) => {
@@ -211,6 +265,14 @@ export default function AppointmentsPage() {
         return [...prev, patient];
     });
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

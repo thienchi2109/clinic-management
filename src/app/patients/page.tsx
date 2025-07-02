@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -12,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { appointments as mockAppointments, invoices as mockInvoices, patients as mockPatients } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UploadCloud, Phone, MapPin, HeartPulse } from 'lucide-react';
+import { UploadCloud, Phone, MapPin, HeartPulse, Loader2 } from 'lucide-react';
 import type { Patient, Appointment, Invoice } from '@/lib/types';
 import { formatDate, calculateAge } from '@/lib/utils';
 import {
@@ -25,6 +26,10 @@ import {
 } from '@/components/ui/dialog';
 import { PatientForm } from './components/patient-form';
 import { PatientDetail } from './components/patient-detail';
+import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { seedAndFetchCollection } from '@/lib/firestore-utils';
+import { useToast } from '@/hooks/use-toast';
 
 const translateGender = (gender: Patient['gender']) => {
     switch(gender) {
@@ -39,75 +44,96 @@ export default function PatientsPage() {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [loading, setLoading] = useState(true);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
-        try {
-            const cachedPatients = localStorage.getItem('patients');
-            if (cachedPatients) {
-                setPatients(JSON.parse(cachedPatients));
-            } else {
-                setPatients(mockPatients);
-                localStorage.setItem('patients', JSON.stringify(mockPatients));
+        async function loadData() {
+            try {
+                const [patientsData, appointmentsData, invoicesData] = await Promise.all([
+                    seedAndFetchCollection('patients', mockPatients),
+                    seedAndFetchCollection('appointments', mockAppointments),
+                    seedAndFetchCollection('invoices', mockInvoices),
+                ]);
+                setPatients(patientsData);
+                setAppointments(appointmentsData);
+                setInvoices(invoicesData);
+            } catch (error) {
+                console.error("Failed to load data from Firestore", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Lỗi tải dữ liệu',
+                    description: 'Không thể tải dữ liệu bệnh nhân từ máy chủ.'
+                });
+            } finally {
+                setLoading(false);
             }
-
-            const cachedAppointments = localStorage.getItem('appointments');
-            if (cachedAppointments) {
-                setAppointments(JSON.parse(cachedAppointments));
-            } else {
-                setAppointments(mockAppointments);
-                localStorage.setItem('appointments', JSON.stringify(mockAppointments));
-            }
-            
-            const cachedInvoices = localStorage.getItem('invoices');
-            if (cachedInvoices) {
-                setInvoices(JSON.parse(cachedInvoices));
-            } else {
-                setInvoices(mockInvoices);
-                localStorage.setItem('invoices', JSON.stringify(mockInvoices));
-            }
-
-        } catch (error) {
-            console.error("Failed to access localStorage or parse data", error);
-            setPatients(mockPatients);
-            setAppointments(mockAppointments);
-            setInvoices(mockInvoices);
         }
-    }, []);
+        loadData();
+    }, [toast]);
 
-    const handleSavePatient = (newPatientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => {
-        setPatients(prevPatients => {
-            const newPatient: Patient = {
-                ...newPatientData,
-                id: `PAT${String(prevPatients.length + 1).padStart(3, '0')}`,
+    const handleSavePatient = async (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => {
+        try {
+            const patientToAdd = {
+                ...patientData,
                 lastVisit: new Date().toISOString().split('T')[0],
                 avatarUrl: 'https://placehold.co/100x100.png',
+                documents: [],
             };
-            const updatedPatients = [...prevPatients, newPatient];
-            try {
-                localStorage.setItem('patients', JSON.stringify(updatedPatients));
-            } catch (error) {
-                console.error("Failed to save patients to localStorage", error);
-            }
-            return updatedPatients;
-        });
+            const docRef = await addDoc(collection(db, 'patients'), patientToAdd);
+            const newPatient = { ...patientToAdd, id: docRef.id };
+            setPatients(prev => [...prev, newPatient]);
+            setIsCreateDialogOpen(false);
+            toast({
+                title: 'Thêm thành công',
+                description: `Hồ sơ bệnh nhân ${newPatient.name} đã được tạo.`,
+            });
+        } catch (error) {
+            console.error("Error adding patient: ", error);
+            toast({
+                variant: 'destructive',
+                title: 'Thêm thất bại',
+                description: 'Đã có lỗi xảy ra khi thêm bệnh nhân mới.',
+            });
+        }
     };
     
-    const handleUpdatePatient = (updatedPatientData: Patient) => {
-        setPatients(prevPatients => {
-            const updatedPatients = prevPatients.map(p =>
-                p.id === updatedPatientData.id ? updatedPatientData : p
+    const handleUpdatePatient = async (updatedPatientData: Patient) => {
+        try {
+            const patientRef = doc(db, "patients", updatedPatientData.id);
+            // We pass the entire object, but Firestore's updateDoc will only update fields.
+            // For nested objects like `documents`, it's safer to use setDoc with merge, but update should work for array replacement.
+            await updateDoc(patientRef, updatedPatientData);
+
+            setPatients(prevPatients => 
+                prevPatients.map(p =>
+                    p.id === updatedPatientData.id ? updatedPatientData : p
+                )
             );
-            try {
-                localStorage.setItem('patients', JSON.stringify(updatedPatients));
-            } catch (error) {
-                console.error("Failed to save updated patients to localStorage", error);
-            }
-            return updatedPatients;
-        });
-        setSelectedPatient(updatedPatientData);
+            setSelectedPatient(updatedPatientData);
+             toast({
+                title: "Cập nhật thành công",
+                description: `Thông tin bệnh nhân ${updatedPatientData.name} đã được lưu.`,
+            });
+        } catch (e) {
+            console.error("Error updating patient: ", e);
+            toast({
+                variant: 'destructive',
+                title: 'Cập nhật thất bại',
+                description: 'Đã có lỗi xảy ra khi lưu thông tin bệnh nhân.',
+            });
+        }
     };
+  
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
   
     return (
     <div className="space-y-6">

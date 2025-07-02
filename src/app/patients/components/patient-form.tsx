@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,7 +26,7 @@ type PatientFormValues = z.infer<typeof patientFormSchema>;
 
 interface PatientFormProps {
     initialData?: Patient;
-    onSave: (patient: PatientFormValues) => Promise<void> | void;
+    onSave: (patient: PatientFormValues) => Promise<any>;
     onClose: () => void;
 }
 
@@ -56,9 +57,13 @@ export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) 
         try {
             await onSave(data);
         } catch (error) {
-            // Error is already handled by the parent component's toast
+            // Error is handled by the caller component's toast
         } finally {
-            setIsSaving(false);
+            // Only set isSaving to false if the component is still mounted.
+            // If onSave closes the dialog, this could cause a memory leak warning.
+            if (form.formState.isSubmitting) {
+               setIsSaving(false);
+            }
         }
     }
 

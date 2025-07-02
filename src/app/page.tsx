@@ -1,4 +1,7 @@
 
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -15,10 +18,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Calendar, Users, Pill } from 'lucide-react';
-import { appointments, patients, medications } from '@/lib/mock-data';
-import type { Patient } from '@/lib/types';
+import { Activity, Calendar, Users, Pill, Loader2 } from 'lucide-react';
+import type { Patient, Appointment, Medication } from '@/lib/types';
 import { formatDate, calculateAge } from '@/lib/utils';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const translateGender = (gender: Patient['gender']) => {
     switch(gender) {
@@ -30,16 +34,52 @@ const translateGender = (gender: Patient['gender']) => {
 }
 
 export default function Dashboard() {
-  const today = new Date('2024-07-30'); // Use static date to match mock data and prevent hydration errors
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [patientsSnapshot, appointmentsSnapshot, medicationsSnapshot] = await Promise.all([
+          getDocs(collection(db, 'patients')),
+          getDocs(collection(db, 'appointments')),
+          getDocs(collection(db, 'medications')),
+        ]);
+        
+        setPatients(patientsSnapshot.docs.map(doc => ({ ...doc.data() as Patient, id: doc.id })));
+        setAppointments(appointmentsSnapshot.docs.map(doc => ({ ...doc.data() as Appointment, id: doc.id })));
+        setMedications(medicationsSnapshot.docs.map(doc => ({ ...doc.data() as Medication, id: doc.id })));
+
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const today = new Date('2024-07-30'); // Use static date to match mock data
   const todaysAppointments = appointments.filter(
     (app) => app.date === '2024-07-30'
   );
+  
   const expiringSoonCount = medications.filter(med => {
     const expiry = new Date(med.expiryDate);
     const diffTime = expiry.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 && diffDays <= 30;
   }).length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 md:gap-8">

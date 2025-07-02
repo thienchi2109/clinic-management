@@ -1,3 +1,7 @@
+
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -15,9 +19,12 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { medications } from '@/lib/mock-data';
-import { PlusCircle } from 'lucide-react';
+import { medications as mockMedications } from '@/lib/mock-data';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import type { Medication } from '@/lib/types';
+import { seedAndFetchCollection } from '@/lib/firestore-utils';
+import { useToast } from '@/hooks/use-toast';
 
 const getExpiryStatus = (expiryDate: string) => {
   const today = new Date('2024-07-30'); // Use static date to prevent hydration errors
@@ -36,6 +43,37 @@ const getExpiryStatus = (expiryDate: string) => {
 };
 
 export default function InventoryPage() {
+  const [medications, setMedications] = useState<Medication[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    async function loadData() {
+        try {
+            const medicationsData = await seedAndFetchCollection('medications', mockMedications);
+            setMedications(medicationsData);
+        } catch (error) {
+            console.error("Failed to load medications from Firestore", error);
+             toast({
+                variant: 'destructive',
+                title: 'Lỗi tải dữ liệu',
+                description: 'Không thể tải dữ liệu kho thuốc từ máy chủ.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    }
+    loadData();
+  }, [toast]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

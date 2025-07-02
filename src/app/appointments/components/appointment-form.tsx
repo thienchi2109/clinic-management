@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -19,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon, UserPlus } from 'lucide-react';
+import { Calendar as CalendarIcon, UserPlus, Loader2 } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 import type { Appointment, Staff, Patient } from '@/lib/types';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -46,12 +47,13 @@ interface AppointmentFormProps {
     staff: Staff[];
     appointments: Appointment[];
     patients: Patient[];
-    onSave: (appointment: Omit<Appointment, 'id' | 'status'>) => void;
-    onSavePatient: (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => Patient;
+    onSave: (appointment: Omit<Appointment, 'id' | 'status'>) => Promise<void>;
+    onSavePatient: (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => Promise<Patient>;
     onClose: () => void;
 }
 
 export function AppointmentForm({ selectedDate, staff, appointments, patients, onSave, onSavePatient, onClose }: AppointmentFormProps) {
+  const [isSaving, setIsSaving] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
   const [patientSearch, setPatientSearch] = useState('');
@@ -95,13 +97,14 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
     },
   });
 
-  function handleSaveNewPatient(patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) {
-    const newPatient = onSavePatient(patientData);
+  async function handleSaveNewPatient(patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) {
+    const newPatient = await onSavePatient(patientData);
     form.setValue('patientName', newPatient.name, { shouldValidate: true });
     setPatientSearch(newPatient.name);
   }
 
-  function onSubmit(data: AppointmentFormValues) {
+  async function onSubmit(data: AppointmentFormValues) {
+    setIsSaving(true);
     const newAppointment = {
         patientName: data.patientName,
         doctorName: data.doctorName,
@@ -109,7 +112,8 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
         startTime: data.startTime,
         endTime: data.endTime,
     };
-    onSave(newAppointment);
+    await onSave(newAppointment);
+    setIsSaving(false);
     onClose();
   }
 
@@ -298,7 +302,10 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
             )}
             />
         </div>
-        <Button type="submit" className="w-full">Lưu lịch hẹn</Button>
+        <Button type="submit" className="w-full" disabled={isSaving}>
+          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSaving ? 'Đang lưu...' : 'Lưu lịch hẹn'}
+        </Button>
       </form>
     </Form>
   );

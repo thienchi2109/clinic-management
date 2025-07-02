@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -23,7 +24,7 @@ interface FindPatientFormProps {
   patients: Patient[];
   walkInQueue: Patient[];
   onAddToQueue: (patient: Patient) => void;
-  onSaveNewPatient: (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => Patient;
+  onSaveNewPatient: (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => Promise<Patient>;
   onClose: () => void;
 }
 
@@ -57,8 +58,8 @@ export function FindPatientForm({ patients, walkInQueue, onAddToQueue, onSaveNew
     }
   };
   
-  const handleSaveNewPatient = (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl'>) => {
-    const newPatient = onSaveNewPatient(patientData);
+  const handleSaveNewPatient = async (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => {
+    const newPatient = await onSaveNewPatient(patientData);
     onAddToQueue(newPatient);
     setIsNewPatientDialogOpen(false);
     onClose();

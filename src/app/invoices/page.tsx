@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
@@ -18,7 +19,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { invoices as mockInvoices } from '@/lib/mock-data';
-import { Printer, Pencil, CreditCard } from 'lucide-react';
+import { Printer, Pencil, CreditCard, Loader2 } from 'lucide-react';
 import type { Invoice, InvoiceItem } from '@/lib/types';
 import {
   Dialog,
@@ -31,6 +32,10 @@ import {
 } from '@/components/ui/dialog';
 import { formatDate } from '@/lib/utils';
 import { InvoiceForm } from './components/invoice-form';
+import { seedAndFetchCollection } from '@/lib/firestore-utils';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 const getStatusVariant = (status: Invoice['status']) => {
   switch (status) {
@@ -108,56 +113,92 @@ const InvoiceDialog = ({ invoice }: { invoice: Invoice }) => (
 
 export default function InvoicesPage() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [loading, setLoading] = useState(true);
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
-        try {
-            const cachedInvoices = localStorage.getItem('invoices');
-            if (cachedInvoices) {
-                setInvoices(JSON.parse(cachedInvoices));
-            } else {
-                setInvoices(mockInvoices);
-                localStorage.setItem('invoices', JSON.stringify(mockInvoices));
+        async function loadData() {
+            try {
+                const invoicesData = await seedAndFetchCollection('invoices', mockInvoices);
+                setInvoices(invoicesData);
+            } catch (error) {
+                console.error("Failed to load invoices from Firestore", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Lỗi tải dữ liệu',
+                    description: 'Không thể tải hóa đơn từ máy chủ.',
+                });
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            console.error("Failed to access localStorage or parse invoices", error);
-            setInvoices(mockInvoices);
         }
-    }, []);
+        loadData();
+    }, [toast]);
 
-    const handleUpdateInvoiceStatus = (invoiceId: string, newStatus: Invoice['status']) => {
-        const updatedInvoices = invoices.map(inv =>
-          inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-        );
-        setInvoices(updatedInvoices);
+    const handleUpdateInvoiceStatus = async (invoiceId: string, newStatus: Invoice['status']) => {
         try {
-          localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+            const invoiceRef = doc(db, 'invoices', invoiceId);
+            await updateDoc(invoiceRef, { status: newStatus });
+            const updatedInvoices = invoices.map(inv =>
+                inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+            );
+            setInvoices(updatedInvoices);
+            toast({
+                title: 'Cập nhật thành công',
+                description: 'Trạng thái hóa đơn đã được thay đổi.',
+            });
         } catch (error) {
-          console.error("Failed to save invoice status to localStorage", error);
+            console.error("Error updating invoice status:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Lỗi',
+                description: 'Không thể cập nhật trạng thái hóa đơn.',
+            });
         }
     };
     
-    const handleSaveInvoice = (invoiceData: { items: InvoiceItem[] }, status: 'Paid' | 'Pending') => {
+    const handleSaveInvoice = async (invoiceData: { items: InvoiceItem[] }, status: 'Paid' | 'Pending') => {
         if (!editingInvoice) return;
 
-        const totalAmount = invoiceData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-        
-        const updatedInvoice: Invoice = {
-            ...editingInvoice,
-            items: invoiceData.items,
-            amount: totalAmount,
-            status: status,
-        };
-        const updatedInvoices = invoices.map(inv => inv.id === editingInvoice.id ? updatedInvoice : inv);
-        setInvoices(updatedInvoices);
         try {
-            localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-        } catch (error) {
-            console.error("Failed to save invoices to localStorage", error);
-        }
+            const totalAmount = invoiceData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+            
+            const updatedInvoice: Invoice = {
+                ...editingInvoice,
+                items: invoiceData.items,
+                amount: totalAmount,
+                status: status,
+            };
+            
+            const invoiceRef = doc(db, 'invoices', editingInvoice.id);
+            await updateDoc(invoiceRef, updatedInvoice);
 
-        setEditingInvoice(null);
+            const updatedInvoices = invoices.map(inv => inv.id === editingInvoice.id ? updatedInvoice : inv);
+            setInvoices(updatedInvoices);
+
+            setEditingInvoice(null);
+            toast({
+                title: 'Lưu thành công',
+                description: 'Hóa đơn đã được cập nhật.',
+            });
+        } catch (error) {
+            console.error("Error saving invoice:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Lỗi',
+                description: 'Không thể lưu hóa đơn.',
+            });
+        }
     };
+    
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
 
   return (
     <div className="space-y-6">
@@ -227,6 +268,7 @@ export default function InvoicesPage() {
                 </DialogHeader>
                 <InvoiceForm
                     patientName={editingInvoice.patientName}
+                    date={editingInvoice.date}
                     initialData={{ items: editingInvoice.items }}
                     onSave={handleSaveInvoice}
                     onClose={() => setEditingInvoice(null)}
