@@ -68,10 +68,14 @@ interface AppointmentDetailProps {
 
 export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice }: AppointmentDetailProps) {
   const [currentStatus, setCurrentStatus] = useState<Appointment['status']>(appointment.status);
+  const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<Invoice['status'] | undefined>(invoice?.status);
   const statusInfo = getStatusInfo(currentStatus);
 
   const handleSaveChanges = () => {
     onUpdateStatus(appointment.id, currentStatus);
+    if (invoice && currentInvoiceStatus && currentInvoiceStatus !== invoice.status) {
+      onUpdateInvoiceStatus(invoice.id, currentInvoiceStatus);
+    }
   };
 
   return (
@@ -146,19 +150,19 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
                         
                         <span className="text-muted-foreground">Trạng thái:</span>
                         <div className="text-right">
-                            <Badge variant={getInvoiceStatusVariant(invoice.status)}>
-                                {translateInvoiceStatus(invoice.status)}
+                            <Badge variant={getInvoiceStatusVariant(currentInvoiceStatus!)}>
+                                {translateInvoiceStatus(currentInvoiceStatus!)}
                             </Badge>
                         </div>
                         
-                        {invoice.status !== 'Paid' && (
+                        {currentInvoiceStatus !== 'Paid' && (
                             <>
                                 <span /> {/* Empty cell for alignment */}
                                 <div className="col-start-2 text-right mt-1">
                                     <TooltipProvider>
                                         <Tooltip>
                                             <TooltipTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary/90" onClick={() => onUpdateInvoiceStatus(invoice.id, 'Paid')}>
+                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary/90" onClick={() => setCurrentInvoiceStatus('Paid')}>
                                                     <CreditCard className="h-4 w-4" />
                                                     <span className="sr-only">Đánh dấu là đã thanh toán</span>
                                                 </Button>
