@@ -3,9 +3,10 @@
 import type { Appointment, Staff, Invoice } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { CalendarSearch, CheckCircle2, CircleDollarSign } from 'lucide-react';
+import { CalendarSearch } from 'lucide-react';
 import { AppointmentDetail } from './appointment-detail';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 
 // Helper function to convert 'HH:mm' to minutes since midnight
 const timeToMinutes = (time: string): number => {
@@ -20,6 +21,19 @@ const getStatusClasses = (status: Appointment['status']) => {
         case 'Cancelled': return 'bg-destructive/80 border-destructive text-destructive-foreground opacity-80';
         default: return 'bg-muted border-border';
     }
+};
+
+const getInvoiceStatusVariant = (status: Invoice['status']): 'accent' | 'secondary' | 'destructive' | 'outline' => {
+  switch (status) {
+    case 'Paid':
+      return 'accent';
+    case 'Pending':
+      return 'secondary';
+    case 'Overdue':
+      return 'destructive';
+    default:
+      return 'outline';
+  }
 };
 
 const translateInvoiceStatus = (status: Invoice['status']) => {
@@ -101,7 +115,7 @@ export function DailyTimeline({
                                 <Dialog key={appointment.id}>
                                     <DialogTrigger asChild>
                                         <div
-                                            className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow cursor-pointer hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary", getStatusClasses(appointment.status))}
+                                            className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow cursor-pointer hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary flex flex-col justify-start", getStatusClasses(appointment.status))}
                                             style={{
                                                 top: `calc(2.5rem + ${topOffset}rem)`, // 2.5rem is header height
                                                 height: `${height}rem`,
@@ -109,19 +123,20 @@ export function DailyTimeline({
                                             tabIndex={0}
                                         >
                                             <p className="font-semibold truncate">{appointment.patientName}</p>
-                                            <p>{appointment.startTime} - {appointment.endTime}</p>
+                                            <p className="flex-shrink-0">{appointment.startTime} - {appointment.endTime}</p>
                                             {invoice && (
-                                                <div className="absolute bottom-1 right-1.5" title={`Thanh toán: ${translateInvoiceStatus(invoice.status)}`}>
-                                                    {invoice.status === 'Paid' ? (
-                                                        <CheckCircle2 className="h-3.5 w-3.5 text-accent-foreground" />
-                                                    ) : (
-                                                        <CircleDollarSign className="h-3.5 w-3.5 text-secondary-foreground" />
-                                                    )}
+                                                <div className="mt-auto pt-1">
+                                                     <Badge
+                                                        variant={getInvoiceStatusVariant(invoice.status)}
+                                                        className="w-fit text-[10px] px-1.5 py-0.5"
+                                                    >
+                                                        {translateInvoiceStatus(invoice.status)}
+                                                    </Badge>
                                                 </div>
                                             )}
                                         </div>
                                     </DialogTrigger>
-                                    <AppointmentDetail appointment={appointment} staffMember={appointmentStaff} onUpdateStatus={onUpdateStatus} />
+                                    <AppointmentDetail appointment={appointment} staffMember={appointmentStaff} onUpdateStatus={onUpdateStatus} invoice={invoice} />
                                 </Dialog>
                             )
                         })}

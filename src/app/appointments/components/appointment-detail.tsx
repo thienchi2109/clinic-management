@@ -8,15 +8,15 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import type { Appointment, Staff } from '@/lib/types';
-import { formatDate } from '@/lib/utils';
+import type { Appointment, Staff, Invoice } from '@/lib/types';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar, Clock, User, Stethoscope, Tag, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const getStatusInfo = (status: Appointment['status']): {
     text: string,
@@ -35,13 +35,35 @@ const getStatusInfo = (status: Appointment['status']): {
   }
 };
 
+const getInvoiceStatusVariant = (status: Invoice['status']): 'accent' | 'secondary' | 'destructive' => {
+  switch (status) {
+    case 'Paid':
+      return 'accent';
+    case 'Pending':
+      return 'secondary';
+    case 'Overdue':
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+};
+const translateInvoiceStatus = (status: Invoice['status']) => {
+    switch (status) {
+        case 'Paid': return 'Đã thanh toán';
+        case 'Pending': return 'Chờ thanh toán';
+        case 'Overdue': return 'Quá hạn';
+        default: return status;
+    }
+}
+
 interface AppointmentDetailProps {
   appointment: Appointment;
   staffMember?: Staff;
+  invoice?: Invoice;
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
 }
 
-export function AppointmentDetail({ appointment, staffMember, onUpdateStatus }: AppointmentDetailProps) {
+export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus }: AppointmentDetailProps) {
   const [currentStatus, setCurrentStatus] = useState<Appointment['status']>(appointment.status);
   const statusInfo = getStatusInfo(currentStatus);
 
@@ -111,6 +133,24 @@ export function AppointmentDetail({ appointment, staffMember, onUpdateStatus }: 
                 </Select>
             </div>
 
+            {invoice && (
+                <>
+                    <Separator />
+                    <div className="pt-2 space-y-2">
+                        <h4 className="font-semibold text-sm">Thông tin thanh toán</h4>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                            <span className="text-muted-foreground">Tổng tiền:</span>
+                            <span className="font-medium text-right">{formatCurrency(invoice.amount)}</span>
+                            <span className="text-muted-foreground">Trạng thái:</span>
+                            <div className="text-right">
+                                <Badge variant={getInvoiceStatusVariant(invoice.status)}>
+                                    {translateInvoiceStatus(invoice.status)}
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {staffMember && (
                  <div className="p-4 border rounded-lg space-y-2 text-sm mt-4">

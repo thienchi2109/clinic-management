@@ -158,7 +158,7 @@ export function AppointmentsTable({ appointments, staff, onUpdateStatus, invoice
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <AppointmentDetail appointment={appointment} staffMember={staffMember} onUpdateStatus={onUpdateStatus} />
+                        <AppointmentDetail appointment={appointment} staffMember={staffMember} onUpdateStatus={onUpdateStatus} invoice={invoice} />
                     </Dialog>
                 </TableCell>
               </TableRow>
