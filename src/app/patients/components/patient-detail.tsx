@@ -11,7 +11,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
 import {
   User,
   Cake,
@@ -23,7 +22,8 @@ import {
   Download,
   Pencil,
   Loader2,
-  Trash2
+  Trash2,
+  Paperclip,
 } from 'lucide-react';
 import { calculateAge, formatDate } from '@/lib/utils';
 import { PatientForm } from './patient-form';
@@ -134,6 +134,15 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
     }
   };
 
+  const handleDeleteDocument = (documentId: string) => {
+    const updatedDocuments = patient.documents?.filter(doc => doc.id !== documentId);
+    onUpdatePatient({ ...patient, documents: updatedDocuments });
+    toast({
+      title: "Đã xóa tài liệu",
+      description: "Tài liệu đã được xóa thành công.",
+    });
+  };
+
   if (isEditing) {
     return (
       <>
@@ -228,18 +237,21 @@ export function PatientDetail({ patient, onUpdatePatient, onClose }: PatientDeta
             <ul className="space-y-2">
               {patient.documents.map(doc => (
                 <li key={doc.id} className="flex items-center justify-between p-2 border rounded-md hover:bg-muted/50">
-                  <div className="flex items-center gap-2 overflow-hidden">
-                    <Badge variant="secondary">{doc.type}</Badge>
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <Paperclip className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                     <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-medium text-sm truncate text-primary hover:underline">
                         {doc.name}
                     </a>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <span className="text-xs text-muted-foreground">Tải lên: {formatDate(doc.uploadDate)}</span>
                     <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                       <a href={doc.url} download={doc.name} target="_blank" rel="noopener noreferrer">
                         <Download className="h-4 w-4" />
                       </a>
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive/90" onClick={() => handleDeleteDocument(doc.id)}>
+                        <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </li>
