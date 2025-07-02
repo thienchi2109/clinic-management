@@ -165,7 +165,7 @@ export default function AppointmentsPage() {
   
   const handleSaveInvoice = (invoiceData: Omit<Invoice, 'id' | 'amount'>, status: 'Paid' | 'Pending') => {
     setInvoices(prevInvoices => {
-        const totalAmount = invoiceData.items.reduce((sum, item) => sum + item.amount, 0);
+        const totalAmount = invoiceData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
         const newInvoice: Invoice = {
             ...invoiceData,
             id: `INV${String(prevInvoices.length + 1).padStart(3, '0')}`,
@@ -261,10 +261,10 @@ export default function AppointmentsPage() {
           </div>
         </div>
         <TabsContent value="timeline" className="flex-1 overflow-auto">
-          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} />
+          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} invoices={invoices} />
         </TabsContent>
         <TabsContent value="table" className="flex-1 overflow-auto">
-          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} />
+          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} invoices={invoices} />
         </TabsContent>
       </Tabs>
       

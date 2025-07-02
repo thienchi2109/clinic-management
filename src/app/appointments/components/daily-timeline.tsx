@@ -1,9 +1,9 @@
 'use client';
 
-import type { Appointment, Staff } from '@/lib/types';
+import type { Appointment, Staff, Invoice } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { CalendarSearch } from 'lucide-react';
+import { CalendarSearch, CheckCircle2, CircleDollarSign } from 'lucide-react';
 import { AppointmentDetail } from './appointment-detail';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
@@ -22,14 +22,25 @@ const getStatusClasses = (status: Appointment['status']) => {
     }
 };
 
+const translateInvoiceStatus = (status: Invoice['status']) => {
+    switch (status) {
+        case 'Paid': return 'Đã thanh toán';
+        case 'Pending': return 'Chờ thanh toán';
+        case 'Overdue': return 'Quá hạn';
+        default: return status;
+    }
+}
+
 export function DailyTimeline({
   appointments,
   staff,
   onUpdateStatus,
+  invoices
 }: {
   appointments: Appointment[];
   staff: Staff[];
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
+  invoices: Invoice[];
 }) {
   const START_HOUR = 7;
   const END_HOUR = 18;
@@ -84,6 +95,7 @@ export function DailyTimeline({
                             const topOffset = ((startMinutes - START_HOUR * 60) / 30) * 2.5; // 2.5rem is height of a 30-min slot
                             const height = ((endMinutes - startMinutes) / 30) * 2.5;
                             const appointmentStaff = staff.find(s => s.name === appointment.doctorName);
+                            const invoice = invoices.find(inv => inv.patientName === appointment.patientName && inv.date === appointment.date);
                             
                             return (
                                 <Dialog key={appointment.id}>
@@ -98,6 +110,15 @@ export function DailyTimeline({
                                         >
                                             <p className="font-semibold truncate">{appointment.patientName}</p>
                                             <p>{appointment.startTime} - {appointment.endTime}</p>
+                                            {invoice && (
+                                                <div className="absolute bottom-1 right-1.5" title={`Thanh toán: ${translateInvoiceStatus(invoice.status)}`}>
+                                                    {invoice.status === 'Paid' ? (
+                                                        <CheckCircle2 className="h-3.5 w-3.5 text-accent-foreground" />
+                                                    ) : (
+                                                        <CircleDollarSign className="h-3.5 w-3.5 text-secondary-foreground" />
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </DialogTrigger>
                                     <AppointmentDetail appointment={appointment} staffMember={appointmentStaff} onUpdateStatus={onUpdateStatus} />

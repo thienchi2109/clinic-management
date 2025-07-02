@@ -1,6 +1,7 @@
 'use client';
 
-import type { Appointment, Staff } from '@/lib/types';
+import type { Appointment, Staff, Invoice } from '@/lib/types';
+import { formatCurrency } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -49,8 +50,29 @@ const translateStatus = (status: Appointment['status']) => {
   }
 };
 
+const getInvoiceStatusVariant = (status: Invoice['status']): 'accent' | 'secondary' | 'destructive' | 'outline' => {
+  switch (status) {
+    case 'Paid':
+      return 'accent';
+    case 'Pending':
+      return 'secondary';
+    case 'Overdue':
+      return 'destructive';
+    default:
+      return 'outline';
+  }
+};
 
-export function AppointmentsTable({ appointments, staff, onUpdateStatus }: { appointments: Appointment[], staff: Staff[], onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void; }) {
+const translateInvoiceStatus = (status: Invoice['status']) => {
+    switch (status) {
+        case 'Paid': return 'Đã thanh toán';
+        case 'Pending': return 'Chờ thanh toán';
+        case 'Overdue': return 'Quá hạn';
+        default: return status;
+    }
+}
+
+export function AppointmentsTable({ appointments, staff, onUpdateStatus, invoices }: { appointments: Appointment[], staff: Staff[], onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void; invoices: Invoice[] }) {
   if (appointments.length === 0) {
     return (
       <Card>
@@ -76,12 +98,15 @@ export function AppointmentsTable({ appointments, staff, onUpdateStatus }: { app
             <TableHead>Bệnh nhân</TableHead>
             <TableHead>Bác sĩ/Điều dưỡng</TableHead>
             <TableHead>Trạng thái</TableHead>
+            <TableHead>Phí dịch vụ</TableHead>
+            <TableHead>Thanh toán</TableHead>
             <TableHead className="text-right">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {sortedAppointments.map((appointment) => {
             const staffMember = staff.find(s => s.name === appointment.doctorName);
+            const invoice = invoices.find(inv => inv.patientName === appointment.patientName && inv.date === appointment.date);
             return (
               <TableRow key={appointment.id}>
                 <TableCell className="font-medium">
@@ -93,6 +118,18 @@ export function AppointmentsTable({ appointments, staff, onUpdateStatus }: { app
                   <Badge variant={getStatusVariant(appointment.status)}>
                     {translateStatus(appointment.status)}
                   </Badge>
+                </TableCell>
+                 <TableCell>
+                  {invoice ? formatCurrency(invoice.amount) : '–'}
+                </TableCell>
+                <TableCell>
+                  {invoice ? (
+                    <Badge variant={getInvoiceStatusVariant(invoice.status)}>
+                      {translateInvoiceStatus(invoice.status)}
+                    </Badge>
+                  ) : (
+                    '–'
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                     <Dialog>

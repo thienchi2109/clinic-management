@@ -18,3 +18,8 @@ export function calculateAge(birthYear: number): number {
   // Use a static year to be consistent with mock data and avoid hydration errors.
   return 2024 - birthYear;
 }
+
+export function formatCurrency(amount: number): string {
+    if (typeof amount !== 'number') return '';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
