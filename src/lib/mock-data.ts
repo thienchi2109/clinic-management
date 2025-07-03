@@ -1,4 +1,4 @@
-import { Patient, Appointment, Medication, Invoice, PatientDocument, Staff } from './types';
+import { Patient, Appointment, Medication, Invoice, PatientDocument, Staff, MedicalRecord } from './types';
 
 // Hardcode dates to prevent hydration errors from `new Date()`
 const staticToday = '2024-07-30';
@@ -61,4 +61,35 @@ export const invoices: Invoice[] = [
   { id: 'INV003', patientName: 'Lê Thị Cẩm', date: staticToday, items: [{id: '1', description: 'Phí tái khám', amount: 200000}], amount: 200000, status: 'Pending' },
   { id: 'INV004', patientName: 'Phạm Văn Dũng', date: '2023-12-05', items: [{id: '1', description: 'Phí tư vấn', amount: 250000}, {id: '2', description: 'Xét nghiệm máu', amount: 60000}], amount: 310000, status: 'Overdue' },
   { id: 'INV005', patientName: 'Hoàng Văn Em', date: '2024-01-02', items: [{id: '1', description: 'Phí tư vấn', amount: 50000}], amount: 50000, status: 'Paid' },
+];
+
+// TODO: Expand prescription system with detailed medication management
+export const medicalRecords: MedicalRecord[] = [
+  {
+    id: 'MR001',
+    patientId: 'PAT002',
+    patientName: 'Trần Thị Bích',
+    appointmentId: 'APP002',
+    date: staticToday,
+    doctorName: 'Bs. Minh',
+    symptoms: 'Đau họng, khó nuốt, sốt nhẹ 37.5°C',
+    diagnosis: 'Viêm họng cấp tính do virus',
+    treatment: 'Nghỉ ngơi, uống nhiều nước, súc miệng bằng nước muối',
+    prescription: 'Paracetamol 500mg x 3 lần/ngày x 5 ngày, Amoxicillin 250mg x 3 lần/ngày x 7 ngày',
+    nextAppointment: '2024-08-05',
+    notes: 'Bệnh nhân cần tái khám sau 1 tuần nếu triệu chứng không cải thiện'
+  },
+  {
+    id: 'MR002',
+    patientId: 'PAT003',
+    patientName: 'Lê Thị Cẩm',
+    appointmentId: 'APP007',
+    date: staticToday,
+    doctorName: 'Bs. Hải',
+    symptoms: 'Tái khám định kỳ, thở bình thường',
+    diagnosis: 'Hen suyễn kiểm soát tốt',
+    treatment: 'Tiếp tục sử dụng thuốc cũ theo đúng liều',
+    prescription: 'Salbutamol inhaler - sử dụng khi cần, Budesonide inhaler 2 lần/ngày',
+    notes: 'Tình trạng ổn định, khuyến khích duy trì lối sống lành mạnh'
+  }
 ];

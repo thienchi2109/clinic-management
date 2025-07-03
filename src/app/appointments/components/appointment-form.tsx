@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -58,6 +57,7 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
   const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
   const [patientSearch, setPatientSearch] = useState('');
   const [isPatientListVisible, setIsPatientListVisible] = useState(false);
+  const [isPatientSaved, setIsPatientSaved] = useState(false);
   
   const filteredPatients = useMemo(() => {
     if (!patientSearch) {
@@ -101,6 +101,7 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
     const newPatient = await onSavePatient(patientData);
     form.setValue('patientName', newPatient.name, { shouldValidate: true });
     setPatientSearch(newPatient.name);
+    setIsPatientSaved(true);
   }
 
   async function onSubmit(data: AppointmentFormValues) {
@@ -118,195 +119,225 @@ export function AppointmentForm({ selectedDate, staff, appointments, patients, o
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-        <FormField
-          control={form.control}
-          name="patientName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tên bệnh nhân</FormLabel>
-              <div className="flex gap-2">
-                <div className="relative w-full">
-                  <FormControl>
-                    <Input
-                      placeholder="Nhập để tìm kiếm bệnh nhân..."
-                      value={patientSearch}
-                      onChange={(e) => {
-                        setPatientSearch(e.target.value);
-                        if (field.value) {
-                          field.onChange(undefined);
-                        }
-                        if (!isPatientListVisible) setIsPatientListVisible(true);
-                      }}
-                      onFocus={() => setIsPatientListVisible(true)}
-                      onBlur={() => {
-                        setTimeout(() => {
-                          setIsPatientListVisible(false);
-                        }, 150);
-                      }}
-                    />
-                  </FormControl>
-                  {isPatientListVisible && patientSearch && (
-                    <div className="absolute top-full mt-1 w-full z-10">
-                      <Card>
-                        <ScrollArea className="h-auto max-h-48 p-1">
-                          {filteredPatients.length > 0 ? (
-                            filteredPatients.map((p) => (
-                              <div
-                                key={p.id}
-                                className="p-2 text-sm hover:bg-accent rounded-md cursor-pointer"
-                                onMouseDown={(e) => {
-                                    e.preventDefault();
-                                    field.onChange(p.name);
-                                    setPatientSearch(p.name);
-                                    setIsPatientListVisible(false);
-                                }}
-                              >
-                                {p.name}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="p-2 text-center text-sm text-muted-foreground">
-                              Không tìm thấy bệnh nhân.
-                            </p>
-                          )}
-                        </ScrollArea>
-                      </Card>
+    <div className={cn("flex gap-6", isPatientFormOpen ? "min-w-[800px]" : "")}>
+      {/* Main Appointment Form */}
+      <div className="flex-1 min-w-[400px]">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="patientName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tên bệnh nhân</FormLabel>
+                  <div className="flex gap-2">
+                    <div className="relative w-full">
+                      <FormControl>
+                        <Input
+                          placeholder="Nhập để tìm kiếm bệnh nhân..."
+                          value={patientSearch}
+                          onChange={(e) => {
+                            setPatientSearch(e.target.value);
+                            if (field.value) {
+                              field.onChange(undefined);
+                            }
+                            if (!isPatientListVisible) setIsPatientListVisible(true);
+                          }}
+                          onFocus={() => setIsPatientListVisible(true)}
+                          onBlur={() => {
+                            setTimeout(() => {
+                              setIsPatientListVisible(false);
+                            }, 150);
+                          }}
+                        />
+                      </FormControl>
+                      {isPatientListVisible && patientSearch && (
+                        <div className="absolute top-full mt-1 w-full z-10">
+                          <Card>
+                            <ScrollArea className="h-auto max-h-48 p-1">
+                              {filteredPatients.length > 0 ? (
+                                filteredPatients.map((p) => (
+                                  <div
+                                    key={p.id}
+                                    className="p-2 text-sm hover:bg-accent rounded-md cursor-pointer"
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        field.onChange(p.name);
+                                        setPatientSearch(p.name);
+                                        setIsPatientListVisible(false);
+                                    }}
+                                  >
+                                    {p.name}
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="p-2 text-center text-sm text-muted-foreground">
+                                  Không tìm thấy bệnh nhân.
+                                </p>
+                              )}
+                            </ScrollArea>
+                          </Card>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <Dialog open={isPatientFormOpen} onOpenChange={setIsPatientFormOpen}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <DialogTrigger asChild>
-                        <Button type="button" variant="outline" size="icon" className="flex-shrink-0">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                          className="flex-shrink-0"
+                          onClick={() => {
+                            setIsPatientFormOpen(!isPatientFormOpen);
+                            setIsPatientSaved(false);
+                          }}
+                        >
                           <UserPlus className="h-4 w-4" />
                           <span className="sr-only">Thêm bệnh nhân mới</span>
                         </Button>
-                      </DialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Thêm bệnh nhân mới</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Thêm hồ sơ bệnh nhân mới</DialogTitle>
-                      <DialogDescription>Nhập thông tin chi tiết cho bệnh nhân.</DialogDescription>
-                    </DialogHeader>
-                    <PatientForm
-                      onSave={handleSaveNewPatient}
-                      onClose={() => setIsPatientFormOpen(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-            control={form.control}
-            name="doctorName"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Bác sĩ/Điều dưỡng</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{isPatientFormOpen ? 'Đóng form thêm bệnh nhân' : 'Thêm bệnh nhân mới'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+                control={form.control}
+                name="doctorName"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Bác sĩ/Điều dưỡng</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Chọn một nhân viên y tế" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        {staff.map((staffMember) => (
+                            <SelectItem key={staffMember.id} value={staffMember.name}>
+                            {staffMember.name} ({staffMember.role})
+                            </SelectItem>
+                        ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Ngày khám</FormLabel>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            formatDate(format(field.value, 'yyyy-MM-dd'))
+                          ) : (
+                            <span>Chọn ngày</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setIsCalendarOpen(false);
+                        }}
+                        disabled={(date) =>
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="startTime"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Giờ bắt đầu</FormLabel>
                     <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Chọn một nhân viên y tế" />
-                    </SelectTrigger>
+                        <Input type="time" {...field} />
                     </FormControl>
-                    <SelectContent>
-                    {staff.map((staffMember) => (
-                        <SelectItem key={staffMember.id} value={staffMember.name}>
-                        {staffMember.name} ({staffMember.role})
-                        </SelectItem>
-                    ))}
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
-            )}
-        />
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Ngày khám</FormLabel>
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        formatDate(format(field.value, 'yyyy-MM-dd'))
-                      ) : (
-                        <span>Chọn ngày</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date);
-                      setIsCalendarOpen(false);
-                    }}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="grid grid-cols-2 gap-4">
-            <FormField
-            control={form.control}
-            name="startTime"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Giờ bắt đầu</FormLabel>
-                <FormControl>
-                    <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-            <FormField
-            control={form.control}
-            name="endTime"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Giờ kết thúc</FormLabel>
-                <FormControl>
-                    <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="endTime"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Giờ kết thúc</FormLabel>
+                    <FormControl>
+                        <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+            <Button type="submit" className="w-full" disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? 'Đang lưu...' : 'Lưu lịch hẹn'}
+            </Button>
+          </form>
+        </Form>
+      </div>
+
+      {/* Side Patient Form */}
+      {isPatientFormOpen && (
+        <div className="flex-1 min-w-[400px] border-l pl-6">
+          <Card className="p-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">Thêm hồ sơ bệnh nhân mới</h3>
+                <p className="text-sm text-muted-foreground">Nhập thông tin chi tiết cho bệnh nhân.</p>
+              </div>
+              <div className={cn("transition-opacity duration-200", isPatientSaved && "opacity-50 pointer-events-none")}>
+                <PatientForm
+                  onSave={handleSaveNewPatient}
+                  onClose={() => setIsPatientFormOpen(false)}
+                />
+              </div>
+              {isPatientSaved && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800 font-medium">
+                    ✓ Bệnh nhân đã được thêm thành công!
+                  </p>
+                  <p className="text-xs text-green-600 mt-1">
+                    Thông tin đã được điền vào form lịch hẹn.
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
-        <Button type="submit" className="w-full" disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isSaving ? 'Đang lưu...' : 'Lưu lịch hẹn'}
-        </Button>
-      </form>
-    </Form>
+      )}
+    </div>
   );
 }

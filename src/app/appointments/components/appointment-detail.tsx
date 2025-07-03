@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import type { Appointment, Staff, Invoice } from '@/lib/types';
+import type { Appointment, Staff, Invoice, MedicalRecord } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,34 +18,58 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { MedicalRecordForm } from './medical-record-form';
 
 const getStatusInfo = (status: Appointment['status']): {
     text: string,
-    variant: 'accent' | 'secondary' | 'destructive',
-    icon: React.FC<React.SVGProps<SVGSVGElement>>
+    variant: 'outline',
+    icon: React.FC<React.SVGProps<SVGSVGElement>>,
+    classes: string
 } => {
+  const baseClasses = 'border-l-4 bg-green-50';
+
   switch (status) {
     case 'Scheduled':
-      return { text: 'Đã lên lịch', variant: 'secondary', icon: AlertCircle };
+      return {
+        text: 'Đã lên lịch',
+        variant: 'outline',
+        icon: AlertCircle,
+        classes: `${baseClasses} border-l-green-600 text-green-800`
+      };
     case 'Completed':
-      return { text: 'Hoàn thành', variant: 'accent', icon: CheckCircle2 };
+      return {
+        text: 'Hoàn thành',
+        variant: 'outline',
+        icon: CheckCircle2,
+        classes: `${baseClasses} border-l-blue-600 text-blue-800 opacity-70`
+      };
     case 'Cancelled':
-      return { text: 'Đã hủy', variant: 'destructive', icon: XCircle };
+      return {
+        text: 'Đã hủy',
+        variant: 'outline',
+        icon: XCircle,
+        classes: `${baseClasses} border-l-red-600 text-red-800 opacity-50 line-through`
+      };
     default:
-      return { text: status, variant: 'secondary', icon: AlertCircle };
+      return {
+        text: status,
+        variant: 'outline',
+        icon: AlertCircle,
+        classes: `${baseClasses} border-l-gray-400 text-gray-800`
+      };
   }
 };
 
-const getInvoiceStatusVariant = (status: Invoice['status']): 'accent' | 'secondary' | 'destructive' => {
+const getInvoiceStatusVariant = (status: Invoice['status']): 'accent' | 'secondary' | 'destructive' | 'outline' => {
   switch (status) {
     case 'Paid':
       return 'accent';
     case 'Pending':
-      return 'secondary';
+      return 'outline';
     case 'Overdue':
       return 'destructive';
     default:
-      return 'secondary';
+      return 'outline';
   }
 };
 const translateInvoiceStatus = (status: Invoice['status']) => {
@@ -64,11 +88,13 @@ interface AppointmentDetailProps {
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
   onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
   onCreateInvoice: (appointment: Appointment) => void;
+  onSaveMedicalRecord: (recordData: Omit<MedicalRecord, 'id'>) => Promise<void>;
 }
 
-export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice }: AppointmentDetailProps) {
+export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice, onSaveMedicalRecord }: AppointmentDetailProps) {
   const [currentStatus, setCurrentStatus] = useState<Appointment['status']>(appointment.status);
   const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<Invoice['status'] | undefined>(invoice?.status);
+  const [showMedicalRecordForm, setShowMedicalRecordForm] = useState(false);
   const statusInfo = getStatusInfo(currentStatus);
 
   const handleSaveChanges = () => {
@@ -77,6 +103,35 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
       onUpdateInvoiceStatus(invoice.id, currentInvoiceStatus);
     }
   };
+
+  const handleSaveMedicalRecord = async (recordData: Omit<MedicalRecord, 'id'>) => {
+    await onSaveMedicalRecord(recordData);
+    setShowMedicalRecordForm(false);
+  };
+
+  const handleCreateInvoiceFromMedicalForm = () => {
+    setShowMedicalRecordForm(false); // Close medical record form
+    onCreateInvoice(appointment); // Open invoice form
+  };
+
+  // If showing medical record form, render it instead of the main dialog
+  if (showMedicalRecordForm) {
+    return (
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="font-headline text-xl">
+            Hồ sơ bệnh án - {appointment.patientName}
+          </DialogTitle>
+        </DialogHeader>
+        <MedicalRecordForm
+          appointment={appointment}
+          onSave={handleSaveMedicalRecord}
+          onClose={() => setShowMedicalRecordForm(false)}
+          onCreateInvoice={!invoice ? handleCreateInvoiceFromMedicalForm : undefined}
+        />
+      </DialogContent>
+    );
+  }
 
   return (
       <DialogContent className="sm:max-w-md">
@@ -116,7 +171,7 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
                 </div>
                  <div className="col-span-2 flex items-center gap-2">
                     <Tag className="h-4 w-4 text-muted-foreground" />
-                    <Badge variant={statusInfo.variant} className="flex items-center gap-1.5">
+                    <Badge variant={statusInfo.variant} className={`flex items-center gap-1.5 ${statusInfo.classes}`}>
                         <statusInfo.icon className="h-3.5 w-3.5" />
                         {statusInfo.text}
                     </Badge>
@@ -200,13 +255,28 @@ export function AppointmentDetail({ appointment, staffMember, invoice, onUpdateS
                  </div>
             )}
         </div>
-        <DialogFooter className="gap-2 sm:justify-end">
-          <DialogClose asChild>
-            <Button type="button" variant="outline">Hủy</Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button type="button" onClick={handleSaveChanges}>Lưu thay đổi</Button>
-          </DialogClose>
+        <DialogFooter className="flex justify-between items-center">
+          {currentStatus === 'Completed' ? (
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowMedicalRecordForm(true)}
+              className="flex items-center gap-2"
+            >
+              <Stethoscope className="h-4 w-4" />
+              Kết quả khám bệnh
+            </Button>
+          ) : (
+            <div></div> // Empty div to maintain layout
+          )}
+          <div className="flex gap-2">
+            <DialogClose asChild>
+              <Button type="button" variant="outline">Hủy</Button>
+            </DialogClose>
+            <DialogClose asChild>
+              <Button type="button" onClick={handleSaveChanges}>Lưu thay đổi</Button>
+            </DialogClose>
+          </div>
         </DialogFooter>
       </DialogContent>
   );

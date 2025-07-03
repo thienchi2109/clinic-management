@@ -1,6 +1,6 @@
 'use client';
 
-import type { Appointment, Staff, Invoice } from '@/lib/types';
+import type { Appointment, Staff, Invoice, MedicalRecord } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import {
   Table,
@@ -25,15 +25,20 @@ import { AppointmentDetail } from './appointment-detail';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
 const getStatusVariant = (status: Appointment['status']): 'secondary' | 'accent' | 'destructive' | 'outline' => {
+  // Using outline variant for all statuses to create subtle, consistent appearance
+  return 'outline';
+};
+
+const getStatusClasses = (status: Appointment['status']) => {
   switch (status) {
     case 'Scheduled':
-      return 'secondary';
+      return 'border-l-4 border-l-green-600 bg-green-50 text-green-800';
     case 'Completed':
-      return 'accent';
+      return 'border-l-4 border-l-blue-600 bg-green-50 text-blue-800 opacity-70';
     case 'Cancelled':
-      return 'destructive';
+      return 'border-l-4 border-l-red-600 bg-green-50 text-red-800 opacity-50 line-through';
     default:
-      return 'outline';
+      return 'border-l-4 border-l-gray-400 bg-green-50 text-gray-800';
   }
 };
 
@@ -79,9 +84,10 @@ interface AppointmentsTableProps {
   onUpdateStatus: (appointmentId: string, newStatus: Appointment['status']) => void;
   onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
   onCreateInvoice: (appointment: Appointment) => void;
+  onSaveMedicalRecord: (recordData: Omit<MedicalRecord, 'id'>) => Promise<void>;
 }
 
-export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice }: AppointmentsTableProps) {
+export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice, onSaveMedicalRecord }: AppointmentsTableProps) {
   if (appointments.length === 0) {
     return (
       <Card>
@@ -124,7 +130,10 @@ export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatu
                 <TableCell>{appointment.patientName}</TableCell>
                 <TableCell>{appointment.doctorName}</TableCell>
                 <TableCell>
-                  <Badge variant={getStatusVariant(appointment.status)}>
+                  <Badge
+                    variant={getStatusVariant(appointment.status)}
+                    className={getStatusClasses(appointment.status)}
+                  >
                     {translateStatus(appointment.status)}
                   </Badge>
                 </TableCell>
@@ -174,6 +183,7 @@ export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatu
                             onUpdateStatus={onUpdateStatus}
                             onUpdateInvoiceStatus={onUpdateInvoiceStatus}
                             onCreateInvoice={onCreateInvoice}
+                            onSaveMedicalRecord={onSaveMedicalRecord}
                         />
                     </Dialog>
                 </TableCell>

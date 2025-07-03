@@ -62,3 +62,19 @@ export interface Staff {
   email: string;
   password: string;
 }
+
+// TODO: Develop more detailed prescription functionality later
+export interface MedicalRecord {
+  id: string;
+  patientId: string;
+  patientName: string;
+  appointmentId: string;
+  date: string;
+  doctorName: string;
+  symptoms: string;          // Triệu chứng
+  diagnosis: string;         // Chẩn đoán
+  treatment: string;         // Phương pháp điều trị
+  prescription?: string;     // Đơn thuốc (TODO: expand this to detailed prescription system)
+  nextAppointment?: string;  // Ngày hẹn tái khám
+  notes?: string;           // Ghi chú thêm
+}

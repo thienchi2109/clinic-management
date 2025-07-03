@@ -267,7 +267,7 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
                                                         <TableCell className="text-right py-2">{formatCurrency(item.amount)}</TableCell>
                                                     </TableRow>
                                                 ))}
-                                                <TableRow className="font-bold bg-muted/50">
+                                                <TableRow key={`total-${visit.id}`} className="font-bold bg-muted/50">
                                                     <TableCell className="py-2">Tổng cộng</TableCell>
                                                     <TableCell className="text-right py-2">{formatCurrency(visit.invoice.amount)}</TableCell>
                                                 </TableRow>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -19,7 +18,7 @@ import { formatDate, calculateAge } from '@/lib/utils';
 import { DailyTimeline } from './components/daily-timeline';
 import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
-import type { Appointment, Patient, Invoice, InvoiceItem, Staff } from '@/lib/types';
+import type { Appointment, Patient, Invoice, InvoiceItem, Staff, MedicalRecord } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentsTable } from './components/appointments-table';
@@ -44,6 +43,7 @@ export default function AppointmentsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -153,12 +153,8 @@ export default function AppointmentsPage() {
             description: 'Trạng thái lịch hẹn đã được thay đổi.',
         });
 
+        // Update patient's last visit date when appointment is completed
         if (newStatus === 'Completed' && appointmentForInvoice) {
-            const existingInvoice = invoices.find(inv => inv.patientName === appointmentForInvoice!.patientName && inv.date === appointmentForInvoice!.date);
-            if (!existingInvoice) {
-                setInvoiceCandidate(appointmentForInvoice);
-            }
-    
             const patientToUpdate = patients.find(p => p.name === appointmentForInvoice!.patientName);
             if (patientToUpdate) {
                 const patientRef = doc(db, 'patients', patientToUpdate.id);
@@ -227,15 +223,21 @@ export default function AppointmentsPage() {
     }
   };
   
-  const handleSaveInvoice = async (invoiceData: { items: InvoiceItem[] }, status: 'Paid' | 'Pending') => {
+  const handleSaveInvoice = async (invoiceData: { items: { id?: string; description: string; amount: number; }[] }, status: 'Paid' | 'Pending') => {
     if (!invoiceCandidate) return;
 
     try {
         const totalAmount = invoiceData.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        const invoiceItems: InvoiceItem[] = invoiceData.items.map(item => ({
+            id: item.id || new Date().toISOString(),
+            description: item.description,
+            amount: item.amount
+        }));
+        
         const invoiceToAdd = {
             patientName: invoiceCandidate.patientName,
             date: invoiceCandidate.date,
-            items: invoiceData.items,
+            items: invoiceItems,
             amount: totalAmount,
             status: status,
         };
@@ -253,6 +255,33 @@ export default function AppointmentsPage() {
             variant: 'destructive',
             title: 'Lỗi',
             description: 'Không thể tạo hóa đơn mới.',
+        });
+    }
+  };
+
+  const handleSaveMedicalRecord = async (recordData: Omit<MedicalRecord, 'id'>) => {
+    try {
+        // Find patient ID based on patient name
+        const patient = patients.find(p => p.name === recordData.patientName);
+        const medicalRecordToAdd = {
+            ...recordData,
+            patientId: patient?.id || '',
+        };
+        
+        const docRef = await addDoc(collection(db, 'medicalRecords'), medicalRecordToAdd);
+        const newMedicalRecord = { ...medicalRecordToAdd, id: docRef.id };
+        setMedicalRecords(prev => [...prev, newMedicalRecord]);
+        
+        toast({
+            title: 'Lưu thành công',
+            description: 'Kết quả khám bệnh đã được ghi nhận.',
+        });
+    } catch (error) {
+        console.error("Error saving medical record: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Lỗi',
+            description: 'Không thể lưu kết quả khám bệnh.',
         });
     }
   };
@@ -343,10 +372,10 @@ export default function AppointmentsPage() {
           </div>
         </div>
         <TabsContent value="timeline" className="flex-1 overflow-auto">
-          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} />
+          <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} onSaveMedicalRecord={handleSaveMedicalRecord} />
         </TabsContent>
         <TabsContent value="table" className="flex-1 overflow-auto">
-          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} />
+          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} onSaveMedicalRecord={handleSaveMedicalRecord} />
         </TabsContent>
       </Tabs>
       

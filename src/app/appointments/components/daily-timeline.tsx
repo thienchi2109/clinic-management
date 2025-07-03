@@ -1,9 +1,9 @@
 'use client';
 
-import type { Appointment, Staff, Invoice } from '@/lib/types';
+import type { Appointment, Staff, Invoice, MedicalRecord } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { CalendarSearch, CreditCard } from 'lucide-react';
+import { CalendarSearch, CreditCard, CheckCircle2 } from 'lucide-react';
 import { AppointmentDetail } from './appointment-detail';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -15,11 +15,18 @@ const timeToMinutes = (time: string): number => {
 };
 
 const getStatusClasses = (status: Appointment['status']) => {
+    // Unified light green background for all appointments
+    const baseClasses = 'bg-green-50 text-gray-800';
+
     switch (status) {
-        case 'Scheduled': return 'bg-primary/80 border-primary text-primary-foreground';
-        case 'Completed': return 'bg-accent/80 border-accent text-accent-foreground';
-        case 'Cancelled': return 'bg-destructive/80 border-destructive text-destructive-foreground opacity-80';
-        default: return 'bg-muted border-border';
+        case 'Scheduled':
+            return `${baseClasses} border-l-4 border-l-green-600`;
+        case 'Completed':
+            return `${baseClasses} border-l-4 border-l-blue-600 opacity-70`;
+        case 'Cancelled':
+            return `${baseClasses} border-l-4 border-l-red-600 opacity-50`;
+        default:
+            return `${baseClasses} border-l-4 border-l-gray-400`;
     }
 };
 
@@ -28,7 +35,7 @@ const getInvoiceStatusVariant = (status: Invoice['status']): 'accent' | 'seconda
     case 'Paid':
       return 'accent';
     case 'Pending':
-      return 'secondary';
+      return 'outline';
     case 'Overdue':
       return 'destructive';
     default:
@@ -51,7 +58,8 @@ export function DailyTimeline({
   onUpdateStatus,
   onUpdateInvoiceStatus,
   invoices,
-  onCreateInvoice
+  onCreateInvoice,
+  onSaveMedicalRecord
 }: {
   appointments: Appointment[];
   staff: Staff[];
@@ -59,6 +67,7 @@ export function DailyTimeline({
   onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
   invoices: Invoice[];
   onCreateInvoice: (appointment: Appointment) => void;
+  onSaveMedicalRecord: (recordData: Omit<MedicalRecord, 'id'>) => Promise<void>;
 }) {
   const START_HOUR = 7;
   const END_HOUR = 18;
@@ -112,30 +121,51 @@ export function DailyTimeline({
                             const endMinutes = timeToMinutes(appointment.endTime);
                             const topOffset = ((startMinutes - START_HOUR * 60) / 30) * 2.5; // 2.5rem is height of a 30-min slot
                             const height = ((endMinutes - startMinutes) / 30) * 2.5;
+                            const minHeight = 3.5; // Minimum height in rem (56px)
+                            const finalHeight = Math.max(height, minHeight);
                             const appointmentStaff = staff.find(s => s.name === appointment.doctorName);
                             const invoice = invoices.find(inv => inv.patientName === appointment.patientName && inv.date === appointment.date);
+                            const isShort = height < 4.5; // Consider appointments under 4.5rem as short
                             
                             return (
                                 <Dialog key={appointment.id}>
                                     <DialogTrigger asChild>
                                         <div
-                                            className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow cursor-pointer hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary flex flex-col justify-start", getStatusClasses(appointment.status))}
+                                            className={cn("absolute w-[90%] left-[5%] rounded-lg p-1.5 text-xs shadow cursor-pointer hover:ring-2 hover:ring-primary focus-visible:ring-2 focus-visible:ring-primary flex flex-col justify-between overflow-hidden", getStatusClasses(appointment.status))}
                                             style={{
                                                 top: `calc(2.5rem + ${topOffset}rem)`, // 2.5rem is header height
-                                                height: `${height}rem`,
+                                                height: `${finalHeight}rem`,
+                                                minHeight: '3.5rem',
                                             }}
                                             tabIndex={0}
                                         >
-                                            <p className="font-semibold truncate">{appointment.patientName}</p>
-                                            <p className="flex-shrink-0">{appointment.startTime} - {appointment.endTime}</p>
+                                            <div className="flex-1 min-h-0">
+                                                <div className="flex items-center gap-1">
+                                                    <p className={cn("font-semibold truncate leading-tight", appointment.status === 'Cancelled' && "line-through")}>
+                                                        {appointment.patientName}
+                                                    </p>
+                                                    {appointment.status === 'Completed' && (
+                                                        <CheckCircle2 className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                                                    )}
+                                                </div>
+                                                <p className={cn("flex-shrink-0 leading-tight text-[10px] opacity-90 mt-0.5", appointment.status === 'Cancelled' && "line-through")}>
+                                                    {appointment.startTime} - {appointment.endTime}
+                                                </p>
+                                            </div>
                                             {invoice && (
-                                                <div className="mt-auto pt-1">
-                                                     <Badge
-                                                        variant={getInvoiceStatusVariant(invoice.status)}
-                                                        className="w-fit text-[10px] px-1.5 py-0.5"
-                                                    >
-                                                        {translateInvoiceStatus(invoice.status)}
-                                                    </Badge>
+                                                <div className="flex-shrink-0 mt-1">
+                                                    {invoice.status === 'Paid' ? (
+                                                        <div className="text-[10px] text-white bg-green-600 px-1.5 py-0.5 rounded-full w-fit leading-none">
+                                                            ✓
+                                                        </div>
+                                                    ) : (
+                                                        <Badge
+                                                            variant={getInvoiceStatusVariant(invoice.status)}
+                                                            className="w-fit text-[9px] px-1 py-0.5 leading-none"
+                                                        >
+                                                            {translateInvoiceStatus(invoice.status)}
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -147,6 +177,7 @@ export function DailyTimeline({
                                         onUpdateStatus={onUpdateStatus}
                                         onUpdateInvoiceStatus={onUpdateInvoiceStatus}
                                         onCreateInvoice={onCreateInvoice}
+                                        onSaveMedicalRecord={onSaveMedicalRecord}
                                     />
                                 </Dialog>
                             )
