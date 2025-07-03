@@ -23,3 +23,43 @@ export function formatCurrency(amount: number): string {
     if (typeof amount !== 'number') return '';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
+
+/**
+ * Generates a patient ID following the pattern: PATIENT-DDMMYYYY-XXX
+ * @param existingPatients - Array of existing patients to check for ID collisions
+ * @param creationDate - Optional date for ID generation (defaults to today)
+ * @returns Generated patient ID
+ */
+export function generatePatientId(existingPatients: { id: string }[], creationDate?: Date): string {
+    const date = creationDate || new Date();
+
+    // Format date as DDMMYYYY
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString();
+    const dateStr = `${day}${month}${year}`;
+
+    // Find existing patient IDs for the same date
+    const datePrefix = `PATIENT-${dateStr}-`;
+    const existingIdsForDate = existingPatients
+        .filter(patient => patient.id.startsWith(datePrefix))
+        .map(patient => patient.id)
+        .sort();
+
+    // Find the next available sequence number
+    let sequenceNumber = 0;
+    for (const existingId of existingIdsForDate) {
+        const sequencePart = existingId.split('-')[2];
+        const currentSequence = parseInt(sequencePart, 10);
+        if (currentSequence === sequenceNumber) {
+            sequenceNumber++;
+        } else {
+            break;
+        }
+    }
+
+    // Format sequence number as XXX (3 digits with leading zeros)
+    const sequenceStr = sequenceNumber.toString().padStart(3, '0');
+
+    return `PATIENT-${dateStr}-${sequenceStr}`;
+}

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { formatDate, calculateAge } from '@/lib/utils';
+import { formatDate, calculateAge, generatePatientId } from '@/lib/utils';
 import { DailyTimeline } from './components/daily-timeline';
 import { AppointmentForm } from './components/appointment-form';
 import { format } from 'date-fns';
@@ -32,7 +32,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { addDoc, collection, doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc, writeBatch, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { seedAndFetchCollection } from '@/lib/firestore-utils';
 import { useToast } from '@/hooks/use-toast';
@@ -231,20 +231,25 @@ export default function AppointmentsPage() {
 
   const handleSavePatient = async (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>): Promise<Patient> => {
     try {
+        // Generate custom patient ID
+        const patientId = generatePatientId(patients);
+
         const patientToAdd = {
             ...patientData,
+            id: patientId,
             lastVisit: new Date().toISOString().split('T')[0],
             avatarUrl: 'https://placehold.co/100x100.png',
             documents: [],
         };
-        const docRef = await addDoc(collection(db, 'patients'), patientToAdd);
-        const newPatient = { ...patientToAdd, id: docRef.id };
-        setPatients(prev => [...prev, newPatient]);
+
+        // Use setDoc with custom ID instead of addDoc
+        await setDoc(doc(db, 'patients', patientId), patientToAdd);
+        setPatients(prev => [...prev, patientToAdd]);
         toast({
             title: 'Thêm thành công',
-            description: `Hồ sơ bệnh nhân ${newPatient.name} đã được tạo.`,
+            description: `Hồ sơ bệnh nhân ${patientToAdd.name} đã được tạo với mã ${patientId}.`,
         });
-        return newPatient;
+        return patientToAdd;
     } catch (error) {
         console.error("Error adding patient: ", error);
         toast({

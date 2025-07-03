@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import type { Patient, PatientDocument, Appointment, Invoice } from '@/lib/types';
+import type { Patient, PatientDocument, Appointment, Invoice, MedicalRecord } from '@/lib/types';
 import {
   DialogHeader,
   DialogTitle,
@@ -32,11 +32,14 @@ import { useToast } from '@/hooks/use-toast';
 import { getSignedURL } from '@/app/actions/r2';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ExaminationHistory } from './examination-history';
 
 interface PatientDetailProps {
   patient: Patient;
   appointments: Appointment[];
   invoices: Invoice[];
+  medicalRecords: MedicalRecord[];
   onUpdatePatient: (patient: Patient) => void;
   onClose: () => void;
 }
@@ -54,7 +57,7 @@ const translateGender = (gender: Patient['gender']) => {
   }
 };
 
-export function PatientDetail({ patient, appointments, invoices, onUpdatePatient, onClose }: PatientDetailProps) {
+export function PatientDetail({ patient, appointments, invoices, medicalRecords, onUpdatePatient, onClose }: PatientDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -204,152 +207,109 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
         </div>
       </DialogHeader>
 
-      <div className="py-4 grid gap-6 max-h-[60vh] overflow-y-auto pr-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <Phone className="h-5 w-5 text-primary" />
-            <span>{patient.phone}</span>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <MapPin className="h-5 w-5 text-primary" />
-            <span>{patient.address}</span>
-          </div>
-        </div>
+      <div className="py-4">
+        <Tabs defaultValue="personal" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="personal">Thông tin cá nhân</TabsTrigger>
+            <TabsTrigger value="examination">Lịch sử khám bệnh</TabsTrigger>
+          </TabsList>
 
-        {patient.medicalHistory && (
-          <div>
-            <h4 className="font-semibold flex items-center gap-2 mb-2 text-base">
-              <HeartPulse className="h-5 w-5 text-primary" />
-              Tiền sử bệnh
-            </h4>
-            <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">{patient.medicalHistory}</p>
-          </div>
-        )}
-
-        <Separator />
-        
-        <div>
-            <h4 className="font-semibold flex items-center gap-2 mb-3 text-base">
-                <History className="h-5 w-5 text-primary" />
-                Lịch sử khám bệnh
-            </h4>
-            {patientHistory.length > 0 ? (
-                <Accordion type="single" collapsible className="w-full">
-                    {patientHistory.map((visit) => (
-                        <AccordionItem value={visit.id} key={visit.id}>
-                            <AccordionTrigger>
-                                <div className="flex justify-between w-full pr-4 text-sm">
-                                    <span>Ngày: {formatDate(visit.date)}</span>
-                                    <span className="text-muted-foreground">Bác sĩ: {visit.doctorName}</span>
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="space-y-4 pt-2">
-                                {visit.notes && (
-                                    <div>
-                                        <h5 className="font-semibold mb-1 text-sm">Kết quả khám</h5>
-                                        <p className="text-sm bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">{visit.notes}</p>
-                                    </div>
-                                )}
-                                {visit.invoice && (
-                                    <div>
-                                        <h5 className="font-semibold mb-2 text-sm">Dịch vụ & Thanh toán</h5>
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>Dịch vụ</TableHead>
-                                                    <TableHead className="text-right w-[120px]">Thành tiền</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {visit.invoice.items.map((item, index) => (
-                                                    <TableRow key={`${visit.id}-item-${index}-${item.id || index}`}>
-                                                        <TableCell className="py-2">{item.description}</TableCell>
-                                                        <TableCell className="text-right py-2">{formatCurrency(item.amount)}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                                <TableRow key={`total-${visit.id}`} className="font-bold bg-muted/50">
-                                                    <TableCell className="py-2">Tổng cộng</TableCell>
-                                                    <TableCell className="text-right py-2">{formatCurrency(visit.invoice.amount)}</TableCell>
-                                                </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                )}
-                                {!visit.invoice && !visit.notes && <p className="text-sm text-muted-foreground">Chưa có thông tin cho lần khám này.</p>}
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
-            ) : (
-                <div className="text-center text-sm text-muted-foreground py-6 border-2 border-dashed rounded-lg">
-                    <p>Bệnh nhân chưa có lịch sử khám.</p>
-                </div>
-            )}
-        </div>
-
-        <Separator />
-
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold flex items-center gap-2 text-base">
-              <FileText className="h-5 w-5 text-primary" />
-              Tài liệu & Kết quả khám
-            </h4>
-            <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" />
-              Tải lên
-            </Button>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-          </div>
-
-          {fileToUpload && (
-            <div className="flex items-center justify-between p-2 pl-3 mb-3 border rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2 overflow-hidden">
-                  <Paperclip className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm font-medium truncate">{fileToUpload.name}</span>
+          <TabsContent value="personal" className="mt-4 space-y-6 max-h-[60vh] overflow-y-auto pr-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Phone className="h-5 w-5 text-primary" />
+                <span>{patient.phone}</span>
               </div>
-              <div className="flex items-center gap-2">
-                 <Button size="sm" onClick={handleUploadFile} disabled={isUploading}>
-                    {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    Lưu tài liệu
-                 </Button>
-                 <Button size="sm" variant="ghost" onClick={() => setFileToUpload(null)} disabled={isUploading}>Hủy</Button>
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <MapPin className="h-5 w-5 text-primary" />
+                <span>{patient.address}</span>
               </div>
             </div>
-          )}
 
-          {(patient.documents && patient.documents.length > 0) ? (
-            <ul className="space-y-2">
-              {patient.documents.map(doc => (
-                <li key={doc.id} className="flex items-center justify-between p-2 border rounded-md hover:bg-muted/50">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <Paperclip className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-medium text-sm truncate text-primary hover:underline">
-                        {doc.name}
-                    </a>
+            {patient.medicalHistory && (
+              <div>
+                <h4 className="font-semibold flex items-center gap-2 mb-2 text-base">
+                  <HeartPulse className="h-5 w-5 text-primary" />
+                  Tiền sử bệnh
+                </h4>
+                <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">{patient.medicalHistory}</p>
+              </div>
+            )}
+
+            <Separator />
+
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold flex items-center gap-2 text-base">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Tài liệu & Kết quả khám
+                </h4>
+                <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Tải lên
+                </Button>
+                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+              </div>
+
+              {fileToUpload && (
+                <div className="flex items-center justify-between p-2 pl-3 mb-3 border rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                      <Paperclip className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">{fileToUpload.name}</span>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-xs text-muted-foreground">Tải lên: {formatDate(doc.uploadDate)}</span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                      <a href={doc.url} download={doc.name} target="_blank" rel="noopener noreferrer">
-                        <Download className="h-4 w-4" />
-                      </a>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive/90" onClick={() => handleDeleteDocument(doc.id)}>
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex items-center gap-2">
+                     <Button size="sm" onClick={handleUploadFile} disabled={isUploading}>
+                        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                        Lưu tài liệu
+                     </Button>
+                     <Button size="sm" variant="ghost" onClick={() => setFileToUpload(null)} disabled={isUploading}>Hủy</Button>
                   </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-             !fileToUpload && (
-                <div className="text-center text-sm text-muted-foreground py-6 border-2 border-dashed rounded-lg">
-                  <p>Chưa có tài liệu nào được tải lên.</p>
                 </div>
-            )
-          )}
-        </div>
+              )}
+
+              {(patient.documents && patient.documents.length > 0) ? (
+                <ul className="space-y-2">
+                  {patient.documents.map(doc => (
+                    <li key={doc.id} className="flex items-center justify-between p-2 border rounded-md hover:bg-muted/50">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <Paperclip className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-medium text-sm truncate text-primary hover:underline">
+                            {doc.name}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <span className="text-xs text-muted-foreground">Tải lên: {formatDate(doc.uploadDate)}</span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                          <a href={doc.url} download={doc.name} target="_blank" rel="noopener noreferrer">
+                            <Download className="h-4 w-4" />
+                          </a>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive/90" onClick={() => handleDeleteDocument(doc.id)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                 !fileToUpload && (
+                    <div className="text-center text-sm text-muted-foreground py-6 border-2 border-dashed rounded-lg">
+                      <p>Chưa có tài liệu nào được tải lên.</p>
+                    </div>
+                )
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="examination" className="mt-4 max-h-[60vh] overflow-y-auto pr-4">
+            <ExaminationHistory
+              patientId={patient.id}
+              patientName={patient.name}
+              medicalRecords={medicalRecords}
+              invoices={invoices}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <DialogFooter className="pt-2 sm:justify-between">

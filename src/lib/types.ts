@@ -23,11 +23,24 @@ export interface Appointment {
 }
 
 export interface Medication {
-  id:string;
+  id: string;
   name: string;
-  batchNo: string;
-  expiryDate: string;
-  stock: number;
+  activeIngredient: string;        // Hoạt chất
+  concentration: string;           // Hàm lượng/Nồng độ (VD: 500mg, 250mg/5ml)
+  dosageForm: string;             // Dạng bào chế (Viên nén, Viên nang, Dung dịch, Thuốc mỡ...)
+  unit: string;                   // Đơn vị tính cơ bản (Viên, Vỉ, Hộp, Chai, Tuýp...)
+  manufacturer: string;           // Nhà sản xuất
+  manufacturerCountry: string;    // Nước sản xuất
+  registrationNumber: string;     // Số đăng ký (SĐK) do Cục Quản lý Dược cấp
+  supplier: string;               // Nhà cung cấp
+  importPrice: number;            // Giá nhập (VNĐ)
+  sellPrice: number;              // Giá bán (VNĐ)
+  storageLocation: string;        // Vị trí lưu kho (VD: Tủ A, Kệ 2, Ngăn 3)
+  minStockThreshold: number;      // Ngưỡng tồn kho tối thiểu
+  batchNo: string;               // Số lô
+  expiryDate: string;            // Ngày hết hạn
+  stock: number;                 // Số lượng tồn kho hiện tại
+  status?: string;               // Trạng thái (optional)
 }
 
 export interface InvoiceItem {

@@ -10,7 +10,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { staff as mockStaff } from '@/lib/mock-data';
+import { staff as mockStaff, appointments as mockAppointments, medicalRecords as mockMedicalRecords } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Phone, Mail, UserPlus, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -23,39 +23,49 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { StaffForm } from './components/staff-form';
+import { StaffDetail } from './components/staff-detail';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { seedAndFetchCollection } from '@/lib/firestore-utils';
 import { useToast } from '@/hooks/use-toast';
-import type { Staff } from '@/lib/types';
+import type { Staff, Appointment, MedicalRecord } from '@/lib/types';
 import { useAuth, useIsAdmin } from '@/contexts/auth-context';
 
 export default function StaffPage() {
     const [staff, setStaff] = useState<Staff[]>([]);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
     const { toast } = useToast();
     const { currentUser } = useAuth();
     const isAdmin = useIsAdmin();
 
     useEffect(() => {
-        const loadStaff = async () => {
+        const loadData = async () => {
             try {
-                const staffData = await seedAndFetchCollection<Staff>('staff', mockStaff);
+                const [staffData, appointmentsData, medicalRecordsData] = await Promise.all([
+                    seedAndFetchCollection<Staff>('staff', mockStaff),
+                    seedAndFetchCollection<Appointment>('appointments', mockAppointments),
+                    seedAndFetchCollection<MedicalRecord>('medicalRecords', mockMedicalRecords),
+                ]);
                 setStaff(staffData);
+                setAppointments(appointmentsData);
+                setMedicalRecords(medicalRecordsData);
             } catch (error) {
-                console.error('Error loading staff:', error);
+                console.error('Error loading data:', error);
                 toast({
                     variant: 'destructive',
                     title: 'Lỗi tải dữ liệu',
-                    description: 'Không thể tải danh sách nhân viên.',
+                    description: 'Không thể tải dữ liệu hệ thống.',
                 });
             } finally {
                 setIsLoading(false);
             }
         };
 
-        loadStaff();
+        loadData();
     }, [toast]);
 
     const handleSaveStaff = async (staffData: Omit<Staff, 'id' | 'avatarUrl'>) => {
@@ -93,6 +103,14 @@ export default function StaffPage() {
                 description: 'Đã có lỗi xảy ra khi thêm nhân viên mới.',
             });
         }
+    };
+
+    const handleViewStaffDetail = (staffMember: Staff) => {
+        setSelectedStaff(staffMember);
+    };
+
+    const handleCloseStaffDetail = () => {
+        setSelectedStaff(null);
     };
 
     if (isLoading) {
@@ -153,7 +171,7 @@ export default function StaffPage() {
                             </Avatar>
                             <div className="grid gap-1">
                                 <CardTitle className="font-headline">{staffMember.name}</CardTitle>
-                                <CardDescription>
+                                <div>
                                     <Badge variant={
                                         staffMember.role === 'Bác sĩ' ? 'default' :
                                         staffMember.role === 'admin' ? 'destructive' :
@@ -161,7 +179,7 @@ export default function StaffPage() {
                                     }>
                                         {staffMember.role === 'admin' ? 'Quản trị viên' : staffMember.role}
                                     </Badge>
-                                </CardDescription>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow space-y-3 pt-2">
@@ -175,11 +193,31 @@ export default function StaffPage() {
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button variant="outline" className="w-full">Xem chi tiết</Button>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => handleViewStaffDetail(staffMember)}
+                            >
+                                Xem chi tiết
+                            </Button>
                         </CardFooter>
                     </Card>
                 ))}
             </div>
+
+            {/* Staff Detail Dialog */}
+            {selectedStaff && (
+                <Dialog open={!!selectedStaff} onOpenChange={handleCloseStaffDetail}>
+                    <DialogContent className="sm:max-w-4xl">
+                        <StaffDetail
+                            staff={selectedStaff}
+                            appointments={appointments}
+                            medicalRecords={medicalRecords}
+                            onClose={handleCloseStaffDetail}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 }

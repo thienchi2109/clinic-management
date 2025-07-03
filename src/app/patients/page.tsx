@@ -12,11 +12,11 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { appointments as mockAppointments, invoices as mockInvoices, patients as mockPatients, staticToday } from '@/lib/mock-data';
+import { appointments as mockAppointments, invoices as mockInvoices, patients as mockPatients, medicalRecords as mockMedicalRecords, staticToday } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UploadCloud, Phone, MapPin, HeartPulse, Loader2, Search, X, Trash2 } from 'lucide-react';
-import type { Patient, Appointment, Invoice } from '@/lib/types';
-import { formatDate, calculateAge } from '@/lib/utils';
+import type { Patient, Appointment, Invoice, MedicalRecord } from '@/lib/types';
+import { formatDate, calculateAge, generatePatientId } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -38,7 +38,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { PatientForm } from './components/patient-form';
 import { PatientDetail } from './components/patient-detail';
-import { addDoc, collection, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { seedAndFetchCollection } from '@/lib/firestore-utils';
 import { useToast } from '@/hooks/use-toast';
@@ -56,6 +56,7 @@ export default function PatientsPage() {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -66,14 +67,16 @@ export default function PatientsPage() {
     useEffect(() => {
         async function loadData() {
             try {
-                const [patientsData, appointmentsData, invoicesData] = await Promise.all([
+                const [patientsData, appointmentsData, invoicesData, medicalRecordsData] = await Promise.all([
                     seedAndFetchCollection('patients', mockPatients),
                     seedAndFetchCollection('appointments', mockAppointments),
                     seedAndFetchCollection('invoices', mockInvoices),
+                    seedAndFetchCollection('medicalRecords', mockMedicalRecords),
                 ]);
                 setPatients(patientsData);
                 setAppointments(appointmentsData);
                 setInvoices(invoicesData);
+                setMedicalRecords(medicalRecordsData);
             } catch (error) {
                 console.error("Failed to load data from Firestore", error);
                 toast({
@@ -187,19 +190,24 @@ export default function PatientsPage() {
 
     const handleSavePatient = async (patientData: Omit<Patient, 'id' | 'lastVisit' | 'avatarUrl' | 'documents'>) => {
         try {
+            // Generate custom patient ID
+            const patientId = generatePatientId(patients);
+
             const patientToAdd = {
                 ...patientData,
+                id: patientId,
                 lastVisit: new Date().toISOString().split('T')[0],
                 avatarUrl: 'https://placehold.co/100x100.png',
                 documents: [],
             };
-            const docRef = await addDoc(collection(db, 'patients'), patientToAdd);
-            const newPatient = { ...patientToAdd, id: docRef.id };
-            setPatients(prev => [...prev, newPatient]);
+
+            // Use setDoc with custom ID instead of addDoc
+            await setDoc(doc(db, 'patients', patientId), patientToAdd);
+            setPatients(prev => [...prev, patientToAdd]);
             setIsCreateDialogOpen(false);
             toast({
                 title: 'Thêm thành công',
-                description: `Hồ sơ bệnh nhân ${newPatient.name} đã được tạo.`,
+                description: `Hồ sơ bệnh nhân ${patientToAdd.name} đã được tạo với mã ${patientId}.`,
             });
         } catch (error) {
             console.error("Error adding patient: ", error);
@@ -424,10 +432,11 @@ export default function PatientsPage() {
       <Dialog open={!!selectedPatient} onOpenChange={(open) => !open && setSelectedPatient(null)}>
         <DialogContent className="sm:max-w-3xl">
           {selectedPatient && (
-            <PatientDetail 
+            <PatientDetail
               patient={selectedPatient}
               appointments={appointments}
               invoices={invoices}
+              medicalRecords={medicalRecords}
               onUpdatePatient={handleUpdatePatient}
               onClose={() => setSelectedPatient(null)}
             />
