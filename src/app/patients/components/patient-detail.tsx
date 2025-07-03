@@ -261,8 +261,8 @@ export function PatientDetail({ patient, appointments, invoices, onUpdatePatient
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {visit.invoice.items.map(item => (
-                                                    <TableRow key={item.id}>
+                                                {visit.invoice.items.map((item, index) => (
+                                                    <TableRow key={`${visit.id}-item-${index}-${item.id || index}`}>
                                                         <TableCell className="py-2">{item.description}</TableCell>
                                                         <TableCell className="text-right py-2">{formatCurrency(item.amount)}</TableCell>
                                                     </TableRow>

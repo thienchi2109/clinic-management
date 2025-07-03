@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppointmentsTable } from './components/appointments-table';
 import { FindPatientForm } from './components/find-patient-form';
 import { InvoiceForm } from '@/app/invoices/components/invoice-form';
+import { AppointmentFiltersComponent, type AppointmentFilters } from './components/appointment-filters';
 import {
   Card,
   CardContent,
@@ -31,7 +32,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { addDoc, collection, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { seedAndFetchCollection } from '@/lib/firestore-utils';
 import { useToast } from '@/hooks/use-toast';
@@ -54,6 +55,13 @@ export default function AppointmentsPage() {
   const [isWalkInDialogOpen, setIsWalkInDialogOpen] = useState(false);
 
   const [invoiceCandidate, setInvoiceCandidate] = useState<Appointment | null>(null);
+
+  // Filter state
+  const [filters, setFilters] = useState<AppointmentFilters>({
+    appointmentStatus: 'all',
+    paymentStatus: 'all',
+    staffMember: 'all'
+  });
 
 
   useEffect(() => {
@@ -93,12 +101,37 @@ export default function AppointmentsPage() {
     [appointments, selectedDateString]
   );
   
-  const dailyAppointments = useMemo(() =>
-    appointmentsForSelectedDate.filter((app) =>
+  const dailyAppointments = useMemo(() => {
+    let filteredAppointments = appointmentsForSelectedDate.filter((app) =>
       app.patientName.toLowerCase().includes(searchTerm.toLowerCase())
-    ),
-    [appointmentsForSelectedDate, searchTerm]
-  );
+    );
+
+    // Apply appointment status filter
+    if (filters.appointmentStatus !== 'all') {
+      filteredAppointments = filteredAppointments.filter(app =>
+        app.status === filters.appointmentStatus
+      );
+    }
+
+    // Apply staff member filter
+    if (filters.staffMember !== 'all') {
+      filteredAppointments = filteredAppointments.filter(app =>
+        app.doctorName === filters.staffMember
+      );
+    }
+
+    // Apply payment status filter
+    if (filters.paymentStatus !== 'all') {
+      filteredAppointments = filteredAppointments.filter(app => {
+        const invoice = invoices.find(inv =>
+          inv.patientName === app.patientName && inv.date === app.date
+        );
+        return invoice ? invoice.status === filters.paymentStatus : filters.paymentStatus === 'Pending';
+      });
+    }
+
+    return filteredAppointments;
+  }, [appointmentsForSelectedDate, searchTerm, filters, invoices]);
 
   const staffForDay = useMemo(() => {
     const staffNamesOnSchedule = [
@@ -295,6 +328,38 @@ export default function AppointmentsPage() {
     });
   };
 
+  const handleEditAppointment = (appointment: Appointment) => {
+    // For now, we'll show a toast indicating the feature is coming soon
+    // In a full implementation, this would open an edit dialog
+    toast({
+      title: 'Tính năng đang phát triển',
+      description: 'Chức năng chỉnh sửa lịch hẹn sẽ được cập nhật trong phiên bản tiếp theo.',
+    });
+  };
+
+  const handleDeleteAppointment = async (appointmentId: string) => {
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, 'appointments', appointmentId));
+
+      // Update local state
+      const updatedAppointments = appointments.filter(app => app.id !== appointmentId);
+      setAppointments(updatedAppointments);
+
+      toast({
+        title: 'Xóa thành công',
+        description: 'Lịch hẹn đã được xóa khỏi hệ thống.',
+      });
+    } catch (error) {
+      console.error("Error deleting appointment: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Lỗi',
+        description: 'Không thể xóa lịch hẹn. Vui lòng thử lại.',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -374,8 +439,24 @@ export default function AppointmentsPage() {
         <TabsContent value="timeline" className="flex-1 overflow-auto">
           <DailyTimeline appointments={dailyAppointments} staff={staffForDay} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} onSaveMedicalRecord={handleSaveMedicalRecord} />
         </TabsContent>
-        <TabsContent value="table" className="flex-1 overflow-auto">
-          <AppointmentsTable appointments={dailyAppointments} staff={staff} onUpdateStatus={handleUpdateAppointmentStatus} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} invoices={invoices} onCreateInvoice={setInvoiceCandidate} onSaveMedicalRecord={handleSaveMedicalRecord} />
+        <TabsContent value="table" className="flex-1 overflow-auto space-y-4">
+          <AppointmentFiltersComponent
+            filters={filters}
+            onFiltersChange={setFilters}
+            staff={staff}
+          />
+          <AppointmentsTable
+            appointments={dailyAppointments}
+            staff={staff}
+            onUpdateStatus={handleUpdateAppointmentStatus}
+            onUpdateInvoiceStatus={handleUpdateInvoiceStatus}
+            invoices={invoices}
+            onCreateInvoice={setInvoiceCandidate}
+            onSaveMedicalRecord={handleSaveMedicalRecord}
+            onEditAppointment={handleEditAppointment}
+            onDeleteAppointment={handleDeleteAppointment}
+            showResultsCount={true}
+          />
         </TabsContent>
       </Tabs>
       

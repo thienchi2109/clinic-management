@@ -23,6 +23,18 @@ import {
 import { MoreHorizontal, FileSearch, Pencil, Trash2, CalendarSearch } from 'lucide-react';
 import { AppointmentDetail } from './appointment-detail';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
 
 const getStatusVariant = (status: Appointment['status']): 'secondary' | 'accent' | 'destructive' | 'outline' => {
   // Using outline variant for all statuses to create subtle, consistent appearance
@@ -85,9 +97,38 @@ interface AppointmentsTableProps {
   onUpdateInvoiceStatus: (invoiceId: string, newStatus: Invoice['status']) => void;
   onCreateInvoice: (appointment: Appointment) => void;
   onSaveMedicalRecord: (recordData: Omit<MedicalRecord, 'id'>) => Promise<void>;
+  onEditAppointment?: (appointment: Appointment) => void;
+  onDeleteAppointment?: (appointmentId: string) => void;
+  showResultsCount?: boolean;
 }
 
-export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice, onSaveMedicalRecord }: AppointmentsTableProps) {
+export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatus, onUpdateInvoiceStatus, onCreateInvoice, onSaveMedicalRecord, onEditAppointment, onDeleteAppointment, showResultsCount = false }: AppointmentsTableProps) {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
+
+  const handleEditClick = (appointment: Appointment) => {
+    if (onEditAppointment) {
+      onEditAppointment(appointment);
+    }
+  };
+
+  const handleDeleteClick = (appointment: Appointment) => {
+    setAppointmentToDelete(appointment);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (appointmentToDelete && onDeleteAppointment) {
+      onDeleteAppointment(appointmentToDelete.id);
+      setDeleteConfirmOpen(false);
+      setAppointmentToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setAppointmentToDelete(null);
+  };
   if (appointments.length === 0) {
     return (
       <Card>
@@ -106,29 +147,39 @@ export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatu
 
   return (
     <Card>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[120px]">Thời gian</TableHead>
-            <TableHead>Bệnh nhân</TableHead>
-            <TableHead>Bác sĩ/Điều dưỡng</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead>Phí dịch vụ</TableHead>
-            <TableHead>Thanh toán</TableHead>
-            <TableHead className="text-right">Hành động</TableHead>
-          </TableRow>
-        </TableHeader>
+      {showResultsCount && (
+        <div className="px-6 py-3 border-b bg-muted/30">
+          <p className="text-sm text-muted-foreground">
+            Hiển thị <span className="font-medium text-foreground">{sortedAppointments.length}</span> lịch hẹn
+          </p>
+        </div>
+      )}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[110px] sm:w-[100px] font-semibold">Thời gian</TableHead>
+              <TableHead className="w-[160px] min-w-[140px] sm:min-w-[120px] font-semibold">Bệnh nhân</TableHead>
+              <TableHead className="hidden md:table-cell w-[140px] font-semibold">Bác sĩ/Điều dưỡng</TableHead>
+              <TableHead className="w-[120px] sm:w-[100px] font-semibold">Trạng thái</TableHead>
+              <TableHead className="hidden sm:table-cell w-[120px] font-semibold">Phí dịch vụ</TableHead>
+              <TableHead className="w-[120px] sm:w-[100px] font-semibold">Thanh toán</TableHead>
+              <TableHead className="text-right w-[90px] sm:w-[70px] font-semibold">Hành động</TableHead>
+            </TableRow>
+          </TableHeader>
         <TableBody>
           {sortedAppointments.map((appointment) => {
             const staffMember = staff.find(s => s.name === appointment.doctorName);
             const invoice = invoices.find(inv => inv.patientName === appointment.patientName && inv.date === appointment.date);
             return (
-              <TableRow key={appointment.id}>
+              <TableRow key={appointment.id} className="hover:bg-muted/50 transition-colors">
                 <TableCell className="font-medium">
-                  {appointment.startTime} - {appointment.endTime}
+                  <div className="whitespace-nowrap text-sm">
+                    {appointment.startTime} - {appointment.endTime}
+                  </div>
                 </TableCell>
-                <TableCell>{appointment.patientName}</TableCell>
-                <TableCell>{appointment.doctorName}</TableCell>
+                <TableCell className="font-medium">{appointment.patientName}</TableCell>
+                <TableCell className="hidden md:table-cell text-muted-foreground">{appointment.doctorName}</TableCell>
                 <TableCell>
                   <Badge
                     variant={getStatusVariant(appointment.status)}
@@ -137,7 +188,7 @@ export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatu
                     {translateStatus(appointment.status)}
                   </Badge>
                 </TableCell>
-                 <TableCell>
+                 <TableCell className="hidden sm:table-cell font-medium text-right">
                   {invoice ? formatCurrency(invoice.amount) : '–'}
                 </TableCell>
                 <TableCell>
@@ -166,11 +217,18 @@ export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatu
                                       <span>Xem chi tiết</span>
                                   </DropdownMenuItem>
                                 </DialogTrigger>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => handleEditClick(appointment)}
+                                    disabled={!onEditAppointment}
+                                >
                                     <Pencil className="mr-2 h-4 w-4" />
                                     <span>Sửa</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => handleDeleteClick(appointment)}
+                                    disabled={!onDeleteAppointment}
+                                >
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     <span>Xóa</span>
                                 </DropdownMenuItem>
@@ -191,7 +249,39 @@ export function AppointmentsTable({ appointments, staff, invoices, onUpdateStatu
             );
           })}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa lịch hẹn</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa lịch hẹn của bệnh nhân{' '}
+              <span className="font-semibold">{appointmentToDelete?.patientName}</span>{' '}
+              vào lúc{' '}
+              <span className="font-semibold">
+                {appointmentToDelete?.startTime} - {appointmentToDelete?.endTime}
+              </span>?
+              <br />
+              <br />
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>
+              Hủy bỏ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Xóa lịch hẹn
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

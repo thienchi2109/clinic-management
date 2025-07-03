@@ -1,7 +1,7 @@
 import { Patient, Appointment, Medication, Invoice, PatientDocument, Staff, MedicalRecord } from './types';
 
 // Hardcode dates to prevent hydration errors from `new Date()`
-const staticToday = '2024-07-30';
+export const staticToday = '2024-07-30';
 const staticExpiringSoon = '2024-08-14'; // 15 days from staticToday
 const staticExpired = '2024-07-25'; // 5 days before staticToday
 

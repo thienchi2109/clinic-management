@@ -56,7 +56,7 @@ export interface PatientDocument {
 export interface Staff {
   id: string;
   name: string;
-  role: 'Bác sĩ' | 'Điều dưỡng';
+  role: 'Bác sĩ' | 'Điều dưỡng' | 'admin';
   avatarUrl: string;
   phone: string;
   email: string;

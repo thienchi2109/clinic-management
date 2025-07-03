@@ -16,23 +16,27 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Settings, LogOut } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/auth-context';
 
 export function Header() {
   const [staffName, setStaffName] = useState('');
   const router = useRouter();
+  const { currentUser, logout } = useAuth();
 
   useEffect(() => {
-    // Get staff info from localStorage
-    const name = localStorage.getItem('staffName');
-    setStaffName(name || 'Người dùng');
-  }, []);
+    // Get staff info from currentUser or localStorage
+    if (currentUser) {
+      setStaffName(currentUser.name);
+    } else {
+      const name = localStorage.getItem('staffName');
+      setStaffName(name || 'Người dùng');
+    }
+  }, [currentUser]);
 
   const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('staffId');
-    localStorage.removeItem('staffName');
-    
+    // Use AuthContext logout method to clear all state
+    logout();
+
     // Redirect to login
     router.push('/login');
   };

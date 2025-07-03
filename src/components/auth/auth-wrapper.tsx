@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { MainLayout } from '@/components/layout/main-layout';
+import { AuthProvider } from '@/contexts/auth-context';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
@@ -67,10 +68,14 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
 
   // Render based on current page
   if (pathname === '/login') {
-    // Login page - render without MainLayout
-    return <>{children}</>;
+    // Login page - render without MainLayout but with AuthProvider
+    return <AuthProvider>{children}</AuthProvider>;
   } else {
-    // All other pages - render with MainLayout
-    return <MainLayout>{children}</MainLayout>;
+    // All other pages - render with MainLayout and AuthProvider
+    return (
+      <AuthProvider>
+        <MainLayout>{children}</MainLayout>
+      </AuthProvider>
+    );
   }
 } 
