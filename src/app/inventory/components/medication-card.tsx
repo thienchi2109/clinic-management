@@ -132,20 +132,18 @@ export function MedicationCard({ medication, onView, onEdit, onDelete }: Medicat
           <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
             <div className="text-xs text-muted-foreground">
-              {[
-                stockStatus.status !== 'normal' && (
-                  <span key="stock-warning">Tồn kho thấp hơn ngưỡng tối thiểu ({medication.minStockThreshold} {medication.unit})</span>
-                ),
-                stockStatus.status !== 'normal' && expiryStatus.status !== 'valid' && (
-                  <span key="separator"> • </span>
-                ),
-                expiryStatus.status === 'expired' && (
-                  <span key="expired-warning">Thuốc đã hết hạn sử dụng</span>
-                ),
-                expiryStatus.status === 'expiring' && (
-                  <span key="expiring-warning">Thuốc sắp hết hạn trong 30 ngày</span>
-                )
-              ].filter(Boolean)}
+              {stockStatus.status !== 'normal' && (
+                <span>Tồn kho thấp hơn ngưỡng tối thiểu ({medication.minStockThreshold} {medication.unit})</span>
+              )}
+              {stockStatus.status !== 'normal' && expiryStatus.status !== 'valid' && (
+                <span> • </span>
+              )}
+              {expiryStatus.status === 'expired' && (
+                <span>Thuốc đã hết hạn sử dụng</span>
+              )}
+              {expiryStatus.status === 'expiring' && (
+                <span>Thuốc sắp hết hạn trong 30 ngày</span>
+              )}
             </div>
           </div>
         )}

@@ -1,4 +1,4 @@
-import { collection, getDocs, writeBatch, doc, DocumentReference } from 'firebase/firestore';
+import { collection, getDocs, writeBatch, doc, DocumentReference, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import type { Medication } from './types';
 
@@ -190,4 +190,22 @@ export async function checkForDuplicateMedications(medications: Medication[]): P
     console.error('Error checking for duplicates:', error);
     throw error;
   }
+}
+
+export async function updateMedication(medication: Medication): Promise<void> {
+  if (!medication.id) {
+    throw new Error("Medication ID is required to update.");
+  }
+  const medicationRef = doc(db, 'medications', medication.id);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, ...medicationData } = medication;
+  await updateDoc(medicationRef, { ...medicationData, updatedAt: new Date() });
+}
+
+export async function deleteMedication(medicationId: string): Promise<void> {
+  if (!medicationId) {
+    throw new Error("Medication ID is required to delete.");
+  }
+  const medicationRef = doc(db, 'medications', medicationId);
+  await deleteDoc(medicationRef);
 }
