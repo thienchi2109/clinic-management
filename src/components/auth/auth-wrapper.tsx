@@ -1,55 +1,40 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
 import { MainLayout } from '@/components/layout/main-layout';
-import { AuthProvider } from '@/contexts/auth-context';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
 
 export function AuthWrapper({ children }: AuthWrapperProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { currentUser, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const checkAuth = () => {
-      // Get auth status from localStorage
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
-      const staffId = localStorage.getItem('staffId');
-      const hasValidAuth = isLoggedIn === 'true' && staffId;
+    // Wait until loading is complete before doing anything
+    if (isLoading) {
+      return;
+    }
 
-      
+    const isAuthPage = pathname === '/login';
 
-      if (pathname === '/login') {
-        // On login page - always allow access
-        setIsAuthenticated(true);
-        setIsLoading(false);
-      } else {
-        // On other pages - check authentication
-        if (hasValidAuth) {
-          setIsAuthenticated(true);
-          setIsLoading(false);
-        } else {
-          setIsAuthenticated(false);
-          setIsLoading(false);
-          router.push('/login');
-        }
-      }
-    };
+    // If user is not logged in and not on the login page, redirect to login
+    if (!currentUser && !isAuthPage) {
+      router.push('/login');
+    }
 
-    // Check immediately and after a short delay to handle localStorage timing
-    checkAuth();
-    const timeoutId = setTimeout(checkAuth, 200);
+    // If user is logged in and tries to access the login page, redirect to home
+    if (currentUser && isAuthPage) {
+      router.push('/');
+    }
+  }, [currentUser, isLoading, router, pathname]);
 
-    return () => clearTimeout(timeoutId);
-  }, [router, pathname]);
-
-  // Show loading spinner while checking authentication
+  // While authentication status is loading, show a full-screen loader
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -61,21 +46,16 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     );
   }
 
-  // If not authenticated, don't render anything (will redirect to login)
-  if (!isAuthenticated) {
-    return null;
+  // If not logged in and on the login page, show the children (Login page)
+  if (!currentUser && pathname === '/login') {
+    return <>{children}</>;
   }
 
-  // Render based on current page
-  if (pathname === '/login') {
-    // Login page - render without MainLayout but with AuthProvider
-    return <AuthProvider>{children}</AuthProvider>;
-  } else {
-    // All other pages - render with MainLayout and AuthProvider
-    return (
-      <AuthProvider>
-        <MainLayout>{children}</MainLayout>
-      </AuthProvider>
-    );
+  // If logged in and not on the login page, show the children within the main layout
+  if (currentUser && pathname !== '/login') {
+    return <MainLayout>{children}</MainLayout>;
   }
-} 
+
+  // In other cases (like redirecting), return null to avoid rendering anything
+  return null;
+}

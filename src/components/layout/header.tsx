@@ -18,10 +18,13 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 
+import { useMediaQuery } from '@/hooks/use-media-query';
+
 export function Header() {
   const [staffName, setStaffName] = useState('');
   const router = useRouter();
   const { currentUser, logout } = useAuth();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
     // Get staff info from currentUser or localStorage
@@ -44,7 +47,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-border bg-background px-4 text-foreground sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
-            <SidebarTrigger />
+            {isDesktop && <SidebarTrigger />}
             <Link href="/" className="flex items-center gap-3">
               <Image src="https://i.postimg.cc/RCs26NTd/pharmacy-12481797.png" alt="Clinic Management Logo" width={28} height={28} />
               <h1 className="whitespace-nowrap text-xl font-headline font-semibold">

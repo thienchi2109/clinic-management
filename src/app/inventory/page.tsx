@@ -255,8 +255,8 @@ export default function InventoryPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả dạng bào chế</SelectItem>
-                    {dosageForms.map((form) => (
-                      <SelectItem key={form} value={form}>
+                    {dosageForms.map((form, index) => (
+                      <SelectItem key={`${form}-${index}`} value={form}>
                         {form}
                       </SelectItem>
                     ))}
