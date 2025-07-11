@@ -16,6 +16,7 @@ import {
   FileText,
   Bot,
   Stethoscope,
+  Clipboard,
 } from 'lucide-react';
 
 const navItems = [
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/patients', label: 'Bệnh nhân', icon: Users },
   { href: '/staff', label: 'Nhân viên y tế', icon: Stethoscope },
   { href: '/inventory', label: 'Kho thuốc', icon: Pill },
+  { href: '/prescriptions', label: 'Đơn thuốc', icon: Clipboard },
   { href: '/invoices', label: 'Hóa đơn', icon: FileText },
   { href: '/ai-assistant', label: 'Trợ lý AI', icon: Bot },
 ];

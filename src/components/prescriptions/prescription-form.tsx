@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Trash2, Search, Save, FileText, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 import type { Prescription, PrescriptionItem, Patient, Medication } from '@/lib/types';
 import { 
@@ -31,6 +31,7 @@ import {
   MEDICATION_UNITS,
   PRESCRIPTION_VALIDATION
 } from '@/lib/prescription-constants';
+import { medications as availableMedications } from '@/lib/mock-data';
 
 interface PrescriptionFormProps {
   patient?: Patient;
@@ -61,6 +62,17 @@ export default function PrescriptionForm({
   initialData,
   mode = 'create'
 }: PrescriptionFormProps) {
+  const { toast } = useToast();
+  
+  // Filter medications that are in stock and not expired
+  const validMedications = availableMedications.filter(med => {
+    const today = new Date();
+    const expiryDate = new Date(med.expiryDate);
+    // Only exclude medications that are expired or have zero stock
+    // Allow medications with low stock (below threshold) since they can still be prescribed
+    return med.stock > 0 && expiryDate > today;
+  });
+
   // Form state
   const [formData, setFormData] = useState<Partial<Prescription>>({
     patientId: patient?.id || '',
@@ -133,7 +145,7 @@ export default function PrescriptionForm({
   const validateCurrentItem = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!currentItem.medicationName?.trim()) newErrors.medication = 'Vui lòng chọn thuốc';
+    if (!currentItem.medicationId?.trim()) newErrors.medication = 'Vui lòng chọn thuốc';
     if (!currentItem.quantity || currentItem.quantity < PRESCRIPTION_VALIDATION.MIN_QUANTITY) {
       newErrors.quantity = `Số lượng phải lớn hơn ${PRESCRIPTION_VALIDATION.MIN_QUANTITY}`;
     }
@@ -186,7 +198,10 @@ export default function PrescriptionForm({
     });
 
     setErrors({});
-    toast.success('Đã thêm thuốc vào đơn');
+    toast({
+      title: 'Thành công',
+      description: 'Đã thêm thuốc vào đơn'
+    });
   };
 
   const removeMedicationItem = (index: number) => {
@@ -194,7 +209,26 @@ export default function PrescriptionForm({
       ...prev,
       items: prev.items?.filter((_, i) => i !== index) || []
     }));
-    toast.success('Đã xóa thuốc khỏi đơn');
+    toast({
+      title: 'Thành công', 
+      description: 'Đã xóa thuốc khỏi đơn'
+    });
+  };
+
+  const handleMedicationSelect = (medicationId: string) => {
+    const medication = validMedications.find(med => med.id === medicationId);
+    if (medication) {
+      setCurrentItem(prev => ({
+        ...prev,
+        medicationId: medication.id,
+        medicationName: medication.name,
+        concentration: medication.concentration,
+        dosageForm: medication.dosageForm,
+        unit: medication.unit,
+        unitPrice: medication.sellPrice,
+        totalCost: (prev.quantity || 1) * medication.sellPrice
+      }));
+    }
   };
 
   const handleSave = async (status: typeof PRESCRIPTION_STATUSES[keyof typeof PRESCRIPTION_STATUSES]) => {
@@ -214,7 +248,7 @@ export default function PrescriptionForm({
         patientGender: formData.patientGender,
         patientWeight: formData.patientWeight,
         patientAddress: formData.patientAddress,
-        doctorId: formData.doctorId,
+        doctorId: formData.doctorId || '',
         doctorName: formData.doctorName || '',
         doctorLicense: formData.doctorLicense,
         medicalRecordId: formData.medicalRecordId,
@@ -227,26 +261,28 @@ export default function PrescriptionForm({
         doctorNotes: formData.doctorNotes,
         nextAppointment: formData.nextAppointment,
         status: status,
-        validUntil: generatePrescriptionValidUntil(new Date()),
+        validUntil: generatePrescriptionValidUntil(formData.date || new Date().toISOString().split('T')[0]),
         clinicInfo: formData.clinicInfo || DEFAULT_CLINIC_INFO,
         createdAt: formData.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: formData.createdBy || doctorName,
-        ...(status === PRESCRIPTION_STATUSES.FINALIZED && {
-          finalizedAt: new Date().toISOString(),
-          finalizedBy: doctorName
-        })
+        updatedAt: new Date().toISOString()
       };
 
       onSave?.(prescription);
-      toast.success(
-        status === PRESCRIPTION_STATUSES.DRAFT 
-          ? 'Đã lưu bản nháp đơn thuốc' 
-          : 'Đã hoàn thành đơn thuốc'
-      );
+      toast({
+        title: status === PRESCRIPTION_STATUSES.DRAFT 
+          ? 'Lưu bản nháp thành công' 
+          : 'Hoàn thành đơn thuốc thành công',
+        description: status === PRESCRIPTION_STATUSES.DRAFT 
+          ? 'Đơn thuốc đã được lưu dưới dạng bản nháp' 
+          : 'Đơn thuốc đã được hoàn thành và sẵn sàng cấp phát'
+      });
     } catch (error) {
       console.error('Error saving prescription:', error);
-      toast.error('Có lỗi xảy ra khi lưu đơn thuốc');
+      toast({
+        variant: 'destructive',
+        title: 'Lỗi',
+        description: 'Có lỗi xảy ra khi lưu đơn thuốc'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -356,28 +392,93 @@ export default function PrescriptionForm({
       {/* Add Medication Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Thêm thuốc vào đơn
+          <CardTitle className="flex items-center gap-2 justify-between">
+            <div className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Thêm thuốc vào đơn
+            </div>
+            <Badge variant="outline">
+              {validMedications.length} thuốc có sẵn
+            </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Show available medications info */}
+          {validMedications.length === 0 && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Không có thuốc nào có sẵn trong kho. Tất cả thuốc đều đã hết hạn hoặc hết tồn kho.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Temporary debug info */}
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertDescription>
+              <strong>Thông tin debug:</strong> Tổng thuốc: {availableMedications.length}, Thuốc hợp lệ: {validMedications.length}
+              <br />
+              <small>Thuốc hợp lệ: {validMedications.map(m => m.name).join(', ')}</small>
+              <details className="mt-2">
+                <summary className="cursor-pointer text-sm font-medium">Chi tiết tất cả thuốc</summary>
+                <div className="mt-2 space-y-1 text-xs">
+                  {availableMedications.map(med => {
+                    const today = new Date();
+                    const expiryDate = new Date(med.expiryDate);
+                    const isValid = med.stock > 0 && expiryDate > today;
+                    return (
+                      <div key={med.id} className={isValid ? 'text-green-600' : 'text-red-500'}>
+                        {med.name} - Tồn kho: {med.stock} - HSD: {med.expiryDate} - {isValid ? '✓ Hợp lệ' : '✗ Không hợp lệ'}
+                      </div>
+                    );
+                  })}
+                </div>
+              </details>
+            </AlertDescription>
+          </Alert>
+
           {/* Medication Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="medicationName">Tên thuốc *</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="medicationName"
-                  value={currentItem.medicationName || ''}
-                  onChange={(e) => setCurrentItem(prev => ({ ...prev, medicationName: e.target.value }))}
-                  placeholder="Nhập tên thuốc"
-                  className={errors.medication ? 'border-red-500' : ''}
-                />
-                <Button variant="outline" size="icon">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </div>
+              <Label htmlFor="medicationSelect">Chọn thuốc từ kho * ({validMedications.length} loại)</Label>
+              <Select 
+                value={currentItem.medicationId || ''} 
+                onValueChange={handleMedicationSelect}
+              >
+                <SelectTrigger className={errors.medication ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Chọn thuốc từ kho" />
+                </SelectTrigger>
+                <SelectContent className="max-h-64 overflow-y-auto">
+                  {validMedications.length === 0 ? (
+                    <div className="p-4 text-center text-muted-foreground">
+                      Không có thuốc nào có sẵn
+                    </div>
+                  ) : (
+                    validMedications.map(med => {
+                      const isLowStock = med.stock <= med.minStockThreshold;
+                      const isExpiringSoon = new Date(med.expiryDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+                      
+                      return (
+                        <SelectItem key={med.id} value={med.id}>
+                          <div className="flex flex-col w-full">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{med.name}</span>
+                              {isLowStock && <Badge variant="secondary" className="text-xs">Sắp hết</Badge>}
+                              {isExpiringSoon && <Badge variant="outline" className="text-xs">Gần hết hạn</Badge>}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              Tồn kho: {med.stock} {med.unit} | Giá: {med.sellPrice.toLocaleString()}đ
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {med.concentration} • {med.dosageForm}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })
+                  )}
+                </SelectContent>
+              </Select>
               {errors.medication && <p className="text-sm text-red-500 mt-1">{errors.medication}</p>}
             </div>
             <div>
@@ -387,6 +488,7 @@ export default function PrescriptionForm({
                 value={currentItem.concentration || ''}
                 onChange={(e) => setCurrentItem(prev => ({ ...prev, concentration: e.target.value }))}
                 placeholder="VD: 500mg, 10ml"
+                disabled={!!currentItem.medicationId}
               />
             </div>
             <div>
@@ -396,6 +498,7 @@ export default function PrescriptionForm({
                 value={currentItem.dosageForm || ''}
                 onChange={(e) => setCurrentItem(prev => ({ ...prev, dosageForm: e.target.value }))}
                 placeholder="VD: Viên nén, Chai, Ống"
+                disabled={!!currentItem.medicationId}
               />
             </div>
             <div>
@@ -404,8 +507,13 @@ export default function PrescriptionForm({
                 id="unitPrice"
                 type="number"
                 value={currentItem.unitPrice || ''}
-                onChange={(e) => setCurrentItem(prev => ({ ...prev, unitPrice: parseFloat(e.target.value) || 0 }))}
+                onChange={(e) => setCurrentItem(prev => ({ 
+                  ...prev, 
+                  unitPrice: parseFloat(e.target.value) || 0,
+                  totalCost: (prev.quantity || 1) * (parseFloat(e.target.value) || 0)
+                }))}
                 placeholder="Giá"
+                disabled={!!currentItem.medicationId}
               />
             </div>
           </div>

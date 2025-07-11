@@ -5,6 +5,8 @@ export interface Patient {
   gender: 'Male' | 'Female' | 'Other';
   address: string;
   phone: string;
+  citizenId: string;
+  weight: number;
   lastVisit: string;
   avatarUrl: string;
   medicalHistory?: string;
@@ -74,6 +76,10 @@ export interface Staff {
   phone: string;
   email: string;
   password: string;
+  licenseNumber?: string;       // Số giấy phép hành nghề
+  licenseIssueDate?: string;    // Ngày cấp
+  licenseIssuePlace?: string;   // Nơi cấp
+  licenseExpiryDate?: string;   // Ngày hết hạn
 }
 
 // TODO: Develop more detailed prescription functionality later
@@ -90,4 +96,51 @@ export interface MedicalRecord {
   prescription?: string;     // Đơn thuốc (TODO: expand this to detailed prescription system)
   nextAppointment?: string;  // Ngày hẹn tái khám
   notes?: string;           // Ghi chú thêm
+}
+
+export interface PrescriptionItem {
+  id: string;
+  medicationId: string;
+  medicationName: string;
+  concentration: string;
+  dosageForm: string;
+  quantity: number;
+  unit: string;
+  dosage: string;           // Liều dùng
+  instructions: string;     // Hướng dẫn sử dụng
+  unitPrice: number;
+  totalCost: number;
+  notes?: string;
+}
+
+export interface Prescription {
+  id: string;
+  patientId: string;
+  patientName: string;
+  patientAge?: number;
+  patientGender?: string;
+  patientWeight?: number;
+  patientAddress?: string;
+  doctorId: string;
+  doctorName: string;
+  doctorLicense?: string;
+  medicalRecordId?: string;
+  appointmentId?: string;
+  date: string;
+  diagnosis: string;
+  symptoms?: string;
+  items: PrescriptionItem[];
+  totalCost: number;
+  doctorNotes?: string;
+  nextAppointment?: string;
+  status: 'Draft' | 'Finalized' | 'Dispensed' | 'Cancelled';
+  validUntil?: string;
+  clinicInfo?: {
+    name: string;
+    address: string;
+    phone: string;
+    licenseNumber: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
 }

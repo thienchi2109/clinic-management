@@ -1,7 +1,7 @@
-import { Patient, Appointment, Medication, Invoice, PatientDocument, Staff, MedicalRecord } from './types';
+import { Patient, Appointment, Medication, Invoice, PatientDocument, Staff, MedicalRecord, Prescription } from './types';
 
 // Hardcode dates to prevent hydration errors from `new Date()`
-export const staticToday = '2024-07-30';
+export const staticToday = '2024-07-27';
 const staticExpiringSoon = '2024-08-14'; // 15 days from staticToday
 const staticExpired = '2024-07-25'; // 5 days before staticToday
 
@@ -14,22 +14,22 @@ export const documents: PatientDocument[] = [
 
 
 export const patients: Patient[] = [
-  { id: 'PATIENT-15102023-000', name: 'Nguyễn Văn An', birthYear: 1979, gender: 'Male', address: '123 Đường Chính, Quận 1, TP.HCM', phone: '0901234567', lastVisit: '2023-10-15', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Tiền sử cao huyết áp, dị ứng với penicillin.', documents: documents.slice(0, 2) },
-  { id: 'PATIENT-30072024-000', name: 'Trần Thị Bích', birthYear: 1990, gender: 'Female', address: '456 Đường Sồi, Quận 3, TP.HCM', phone: '0902345678', lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Không có bệnh mãn tính.', documents: [] },
-  { id: 'PATIENT-30072024-001', name: 'Lê Thị Cẩm', birthYear: 1996, gender: 'Female', address: '789 Đường Thông, Quận 5, TP.HCM', phone: '0903456789', lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Hen suyễn từ nhỏ.', documents: [documents[2]] },
-  { id: 'PATIENT-05122023-000', name: 'Phạm Văn Dũng', birthYear: 1968, gender: 'Male', address: '101 Đường Phong, Quận 10, TP.HCM', phone: '0904567890', lastVisit: '2023-12-05', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Tiểu đường type 2.', documents: [] },
-  { id: 'PATIENT-02012024-000', name: 'Hoàng Văn Em', birthYear: 1983, gender: 'Male', address: '212 Đường Bạch Dương, Q.Tân Bình, TP.HCM', phone: '0905678901', lastVisit: '2024-01-02', avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Đau dạ dày, thường xuyên stress.', documents: [] },
+  { id: 'BN00001', name: 'Nguyễn Văn An', birthYear: 1985, gender: 'Male', address: '123 Đường ABC, Quận 1, TP.HCM', phone: '0901234567', citizenId: '001085123456', weight: 70, lastVisit: '2023-10-26', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', medicalHistory: 'Tiền sử huyết áp cao, đang điều trị bằng Amlodipin 5mg.', documents: documents.slice(0, 2) },
+  { id: 'PATIENT-30072024-000', name: 'Trần Thị Bích', birthYear: 1990, gender: 'Female', address: '456 Đường Sồi, Quận 3, TP.HCM', phone: '0902345678', citizenId: '001190123456', weight: 55, lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Không có bệnh mãn tính.', documents: [] },
+  { id: 'PATIENT-30072024-001', name: 'Lê Thị Cẩm', birthYear: 1996, gender: 'Female', address: '789 Đường Thông, Quận 5, TP.HCM', phone: '0903456789', citizenId: '001196123456', weight: 60, lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Hen suyễn từ nhỏ.', documents: [documents[2]] },
+  { id: 'PATIENT-30072024-002', name: 'Phạm Văn Dũng', birthYear: 2001, gender: 'Male', address: '101 Đường Liễu, Quận 10, TP.HCM', phone: '0904567890', citizenId: '001201123456', weight: 75, lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Gãy tay năm 2020.', documents: [] },
+  { id: 'PATIENT-30072024-003', name: 'Võ Minh Long', birthYear: 1982, gender: 'Male', address: '212 Đường Tre, Quận Tân Bình, TP.HCM', phone: '0905678901', citizenId: '001082123456', weight: 80, lastVisit: staticToday, avatarUrl: 'https://placehold.co/100x100.png', medicalHistory: 'Tiểu đường type 2.', documents: [] },
 ];
 
 export const staff: Staff[] = [
-    { id: 'STAFF001', name: 'Bs. Minh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-123-4567', email: 'minh.bs@clinic.com', password: 'minh123' },
+    { id: 'STAFF001', name: 'Bs. Minh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-123-4567', email: 'minh.bs@clinic.com', password: 'minh123', licenseNumber: 'CCHN00123/HCM' },
     { id: 'STAFF002', name: 'Bs. Hải', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-234-5678', email: 'hai.bs@clinic.com', password: 'hai123' },
-    { id: 'STAFF003', name: 'Bs. Hoài', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-345-6789', email: 'hoai.bs@clinic.com', password: 'hoai123' },
+    { id: 'STAFF003', name: 'Bs. Hoài', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-345-6789', email: 'hoai.bs@clinic.com', password: 'hoai123', licenseNumber: 'CCHN00789/HNO' },
     { id: 'STAFF004', name: 'Bs. Linh', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-456-7890', email: 'linh.bs@clinic.com', password: 'linh123' },
-    { id: 'STAFF005', name: 'Đd. Hạnh', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-567-8901', email: 'hanh.dd@clinic.com', password: 'hanh123' },
+    { id: 'STAFF005', name: 'Đd. Hạnh', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-567-8901', email: 'hanh.dd@clinic.com', password: 'hanh123', licenseNumber: 'CCHN-DD00456/DNA' },
     { id: 'STAFF006', name: 'Đd. Hoa', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-678-9012', email: 'hoa.dd@clinic.com', password: 'hoa123' },
     { id: 'STAFF007', name: 'Bs. An', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-789-0123', email: 'an.bs@clinic.com', password: 'an123' },
-    { id: 'STAFF008', name: 'Bs. Bình', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-890-1234', email: 'binh.bs@clinic.com', password: 'binh123' },
+    { id: 'STAFF008', name: 'Bs. Bình', role: 'Bác sĩ', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-890-1234', email: 'binh.bs@clinic.com', password: 'binh123', licenseNumber: 'CCHN01112/BDI' },
     { id: 'STAFF009', name: 'Đd. Chi', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-901-2345', email: 'chi.dd@clinic.com', password: 'chi123' },
     { id: 'STAFF010', name: 'Đd. Dung', role: 'Điều dưỡng', avatarUrl: 'https://placehold.co/100x100.png', phone: '090-012-3456', email: 'dung.dd@clinic.com', password: 'dung123' },
 ];
@@ -238,5 +238,113 @@ export const medicalRecords: MedicalRecord[] = [
     treatment: 'Tiếp tục sử dụng thuốc cũ theo đúng liều',
     prescription: 'Salbutamol inhaler - sử dụng khi cần, Budesonide inhaler 2 lần/ngày',
     notes: 'Tình trạng ổn định, khuyến khích duy trì lối sống lành mạnh'
+  }
+];
+
+export const prescriptions: Prescription[] = [
+  {
+    id: 'PR001',
+    patientId: 'PATIENT-30072024-000',
+    patientName: 'Trần Thị Bích',
+    patientAge: 34,
+    patientGender: 'Female',
+    patientWeight: 55,
+    patientAddress: '456 Đường Sồi, Quận 3, TP.HCM',
+    doctorId: 'STAFF001',
+    doctorName: 'Bs. Minh',
+    doctorLicense: 'CCHN00123/HCM',
+    medicalRecordId: 'MR001',
+    appointmentId: 'APP002',
+    date: staticToday,
+    diagnosis: 'Viêm họng cấp tính do virus',
+    symptoms: 'Đau họng, khó nuốt, sốt nhẹ 37.5°C',
+    items: [
+      {
+        id: 'PI001',
+        medicationId: 'MED001',
+        medicationName: 'Paracetamol 500mg',
+        concentration: '500mg',
+        dosageForm: 'Viên nén',
+        quantity: 20,
+        unit: 'Viên',
+        dosage: '1 viên/lần',
+        instructions: '3-4 lần/ngày sau ăn khi sốt trên 38.5°C',
+        unitPrice: 1800,
+        totalCost: 36000,
+        notes: ''
+      },
+      {
+        id: 'PI002',
+        medicationId: 'MED002',
+        medicationName: 'Amoxicillin 250mg',
+        concentration: '250mg',
+        dosageForm: 'Viên nang',
+        quantity: 14,
+        unit: 'Viên',
+        dosage: '1 viên/lần',
+        instructions: '2 lần/ngày (sáng, tối) sau ăn. Uống hết liều.',
+        unitPrice: 3200,
+        totalCost: 44800,
+        notes: ''
+      }
+    ],
+    totalCost: 80800,
+    doctorNotes: 'Uống nhiều nước ấm, nghỉ ngơi, giữ ấm cổ. Hạn chế đồ ăn cay nóng.',
+    nextAppointment: '2024-08-05',
+    status: 'Finalized',
+    validUntil: '2024-08-01',
+    clinicInfo: {
+      name: 'PHÒNG KHÁM ĐA KHOA ABC',
+      address: 'Số 123, Đường XYZ, Phường Cống Vị, Quận Ba Đình, Hà Nội',
+      phone: '(024) 3456 7890',
+      licenseNumber: '01234'
+    },
+    createdAt: staticToday,
+    updatedAt: staticToday
+  },
+  {
+    id: 'PR002',
+    patientId: 'PATIENT-30072024-001',
+    patientName: 'Lê Thị Cẩm',
+    patientAge: 28,
+    patientGender: 'Female',
+    patientWeight: 60,
+    patientAddress: '789 Đường Thông, Quận 5, TP.HCM',
+    doctorId: 'STAFF002',
+    doctorName: 'Bs. Hải',
+    doctorLicense: '',
+    medicalRecordId: 'MR002',
+    appointmentId: 'APP007',
+    date: staticToday,
+    diagnosis: 'Hen suyễn kiểm soát tốt',
+    symptoms: 'Tái khám định kỳ, thở bình thường',
+    items: [
+      {
+        id: 'PI003',
+        medicationId: 'MED003',
+        medicationName: 'Ibuprofen 200mg',
+        concentration: '200mg',
+        dosageForm: 'Viên nén bao phim',
+        quantity: 10,
+        unit: 'Viên',
+        dosage: '1 viên/lần',
+        instructions: 'Uống khi cần thiết để giảm đau',
+        unitPrice: 2500,
+        totalCost: 25000,
+        notes: 'Sử dụng khi cần'
+      }
+    ],
+    totalCost: 25000,
+    doctorNotes: 'Tiếp tục duy trì lối sống lành mạnh, tránh các chất gây dị ứng.',
+    status: 'Draft',
+    validUntil: '2024-08-01',
+    clinicInfo: {
+      name: 'PHÒNG KHÁM ĐA KHOA ABC',
+      address: 'Số 123, Đường XYZ, Phường Cống Vị, Quận Ba Đình, Hà Nội',
+      phone: '(024) 3456 7890',
+      licenseNumber: '01234'
+    },
+    createdAt: staticToday,
+    updatedAt: staticToday
   }
 ];
