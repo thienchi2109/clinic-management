@@ -167,7 +167,7 @@ export default function PrescriptionDetailDialog({
               </CardHeader>
               <CardContent>
                 {/* Scrollable medication list with max height */}
-                <ScrollArea className="max-h-96 pr-4">
+                <div className="max-h-96 overflow-y-auto pr-4">
                   <div className="space-y-4">
                     {prescription.items.map((item, index) => (
                       <div key={item.id} className="border rounded-lg p-4">
@@ -214,7 +214,7 @@ export default function PrescriptionDetailDialog({
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
 
                 <Separator className="my-4" />
 

@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Calendar as CalendarIcon, Loader2, Stethoscope, CreditCard, Plus, Trash2, Search } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -216,7 +216,7 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
         </p>
       </div>
 
-      <ScrollArea className="h-[600px] pr-4">
+      <div className="h-[600px] overflow-y-auto pr-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -455,7 +455,7 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
             />
           </form>
         </Form>
-      </ScrollArea>
+      </div>
 
       {/* Action buttons outside ScrollArea - always visible */}
       <div className="space-y-4 pt-4 border-t">
