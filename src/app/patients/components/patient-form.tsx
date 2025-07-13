@@ -19,6 +19,8 @@ const patientFormSchema = z.object({
   birthYear: z.coerce.number().min(1900, 'Năm sinh không hợp lệ.').max(new Date().getFullYear(), 'Năm sinh không hợp lệ.'),
   address: z.string().min(5, { message: 'Địa chỉ phải có ít nhất 5 ký tự.' }),
   phone: z.string().regex(/^\d{10}$/, { message: 'Số điện thoại phải có 10 chữ số.' }),
+  citizenId: z.string().regex(/^\d{12}$/, { message: 'Số CCCD/Số ĐDCN phải có 12 chữ số.' }),
+  weight: z.coerce.number().positive({ message: 'Cân nặng phải là số dương.' }),
   medicalHistory: z.string().optional(),
 });
 
@@ -41,11 +43,15 @@ export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) 
             birthYear: initialData.birthYear,
             address: initialData.address,
             phone: initialData.phone,
+            citizenId: initialData.citizenId,
+            weight: initialData.weight,
             medicalHistory: initialData.medicalHistory || '',
         } : {
             name: '',
             address: '',
             phone: '',
+            citizenId: '',
+            weight: '' as any,
             birthYear: '' as any,
             gender: undefined,
             medicalHistory: '',
@@ -96,6 +102,22 @@ export function PatientForm({ initialData, onSave, onClose }: PatientFormProps) 
                                     <SelectItem value="Other">Khác</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="citizenId" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Số CCCD/Số ĐDCN</FormLabel>
+                            <FormControl><Input placeholder="012345678901" {...field} /></FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="weight" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Cân nặng (kg)</FormLabel>
+                            <FormControl><Input type="number" placeholder="50" {...field} /></FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />

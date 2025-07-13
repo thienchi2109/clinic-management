@@ -11,13 +11,18 @@ import { DialogFooter } from '@/components/ui/dialog';
 import type { Staff } from '@/lib/types';
 import { Loader2, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import React from 'react';
+import { Separator } from '@/components/ui/separator';
 
 const staffFormSchema = z.object({
   name: z.string().min(2, { message: 'Tên nhân viên phải có ít nhất 2 ký tự.' }),
   role: z.enum(['Bác sĩ', 'Điều dưỡng', 'admin'], { required_error: 'Vui lòng chọn vai trò.' }),
-  phone: z.string().regex(/^[0-9\-\s]+$/, { message: 'Số điện thoại không hợp lệ.' }).min(10, { message: 'Số điện thoại phải có ít nhất 10 ký tự.' }),
+  phone: z.string().regex(/^[0-9\\-\\s]+$/, { message: 'Số điện thoại không hợp lệ.' }).min(10, { message: 'Số điện thoại phải có ít nhất 10 ký tự.' }),
   email: z.string().email({ message: 'Email không hợp lệ.' }),
   password: z.string().min(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự.' }),
+  licenseNumber: z.string().optional(),
+  licenseIssueDate: z.string().optional(),
+  licenseIssuePlace: z.string().optional(),
+  licenseExpiryDate: z.string().optional(),
 });
 
 type StaffFormValues = z.infer<typeof staffFormSchema>;
@@ -45,19 +50,21 @@ export function StaffForm({ initialData, onSave, onClose }: StaffFormProps) {
     const form = useForm<StaffFormValues>({
         resolver: zodResolver(staffFormSchema),
         defaultValues: initialData ? {
-            name: initialData.name,
-            role: initialData.role,
-            phone: initialData.phone,
-            email: initialData.email,
-            password: initialData.password,
+            ...initialData
         } : {
             name: '',
             role: undefined,
             phone: '',
             email: '',
             password: '',
+            licenseNumber: '',
+            licenseIssueDate: '',
+            licenseIssuePlace: '',
+            licenseExpiryDate: '',
         },
     });
+
+    const watchedRole = form.watch('role');
 
     const handleGeneratePassword = () => {
         const newPassword = generatePassword();
@@ -116,6 +123,69 @@ export function StaffForm({ initialData, onSave, onClose }: StaffFormProps) {
                         )}
                     />
                 </div>
+
+                {['Bác sĩ', 'Điều dưỡng'].includes(watchedRole) && (
+                    <div className="space-y-4 pt-4">
+                        <Separator />
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="licenseNumber"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Số GPHN</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Nhập số giấy phép" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="licenseIssuePlace"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nơi cấp</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="VD: Sở Y tế TP.HCM" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <FormField
+                                control={form.control}
+                                name="licenseIssueDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Ngày cấp</FormLabel>
+                                        <FormControl>
+                                            <Input type="date" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="licenseExpiryDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Ngày hết hạn</FormLabel>
+                                        <FormControl>
+                                            <Input type="date" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <Separator />
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField

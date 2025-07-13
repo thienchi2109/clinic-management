@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { 
   FileText, 
   User, 
@@ -58,7 +58,7 @@ export default function PrescriptionDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-4xl max-h-[90vh] p-0 flex flex-col">
         <DialogHeader className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -81,7 +81,7 @@ export default function PrescriptionDetailDialog({
           </div>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           <div className="space-y-6">
             {/* Patient Information */}
             <Card>
@@ -167,7 +167,7 @@ export default function PrescriptionDetailDialog({
               </CardHeader>
               <CardContent>
                 {/* Scrollable medication list with max height */}
-                <ScrollArea className="max-h-96 pr-4">
+                <div className="max-h-96 overflow-y-auto pr-4">
                   <div className="space-y-4">
                     {prescription.items.map((item, index) => (
                       <div key={item.id} className="border rounded-lg p-4">
@@ -214,7 +214,7 @@ export default function PrescriptionDetailDialog({
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
 
                 <Separator className="my-4" />
 
@@ -287,7 +287,7 @@ export default function PrescriptionDetailDialog({
               </Card>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Action Buttons */}
         <div className="px-6 py-4 border-t bg-gray-50">

@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import PrescriptionForm from './prescription-form';
 import type { Prescription, Patient } from '@/lib/types';
 
@@ -74,9 +74,8 @@ export default function PrescriptionDialog({
           )}
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full px-6 py-4">
-            <PrescriptionForm
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <PrescriptionForm
               patient={patient}
               doctorName={doctorName}
               doctorId={doctorId}
@@ -90,7 +89,6 @@ export default function PrescriptionDialog({
               initialData={initialData}
               mode={mode}
             />
-          </ScrollArea>
         </div>
       </DialogContent>
     </Dialog>

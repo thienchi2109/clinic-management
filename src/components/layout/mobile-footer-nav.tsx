@@ -27,6 +27,7 @@ const mainNavItems = [
 const moreNavItems = [
   { href: '/patients', label: 'Bệnh nhân', icon: 'Users' },
   { href: '/staff', label: 'Nhân viên y tế', icon: 'Stethoscope' },
+  { href: '/prescriptions', label: 'Đơn thuốc', icon: 'FileText' },
   { href: '/invoices', label: 'Hóa đơn', icon: 'FileText' },
   { href: '/ai-assistant', label: 'Trợ lý AI', icon: 'Bot' },
 ];

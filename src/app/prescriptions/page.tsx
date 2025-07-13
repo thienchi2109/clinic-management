@@ -1,27 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, FileText } from 'lucide-react';
-import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, FileText, Search, Filter, Eye, Edit, Printer, Calendar, User, Stethoscope } from 'lucide-react';
+import { formatDate, formatCurrency, printPrescription } from '@/lib/utils';
+import { PRESCRIPTION_STATUS_LABELS, PRESCRIPTION_STATUS_VARIANTS } from '@/lib/prescription-constants';
+import { useToast } from '@/hooks/use-toast';
 
 import {
   PrescriptionDialog,
-  PrescriptionList,
   PrescriptionDetailDialog,
   type Prescription
 } from '@/components/prescriptions';
 
 // Mock data for testing
-import { prescriptions as mockPrescriptions, patients } from '@/lib/mock-data';
+import { prescriptions as mockPrescriptions, patients, medications } from '@/lib/mock-data';
 
 export default function PrescriptionsPage() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>(mockPrescriptions);
+  const [filteredPrescriptions, setFilteredPrescriptions] = useState<Prescription[]>(mockPrescriptions);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
   const [editingPrescription, setEditingPrescription] = useState<Prescription | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  
+  const { toast } = useToast();
 
   // Mock doctor info
   const currentDoctor = {
@@ -30,9 +39,32 @@ export default function PrescriptionsPage() {
     license: '001234/BYT-CCHN'
   };
 
+  useEffect(() => {
+    let filtered = prescriptions;
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(p => 
+        p.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.diagnosis.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.doctorName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(p => p.status === statusFilter);
+    }
+
+    setFilteredPrescriptions(filtered);
+  }, [prescriptions, searchTerm, statusFilter]);
+
   const handleCreatePrescription = (prescription: Prescription) => {
     setPrescriptions(prev => [prescription, ...prev]);
-    toast.success('Đã tạo đơn thuốc thành công');
+    toast({
+      title: 'Thành công',
+      description: 'Đã tạo đơn thuốc thành công'
+    });
   };
 
   const handleUpdatePrescription = (updatedPrescription: Prescription) => {
@@ -40,7 +72,10 @@ export default function PrescriptionsPage() {
       prev.map(p => p.id === updatedPrescription.id ? updatedPrescription : p)
     );
     setEditingPrescription(null);
-    toast.success('Đã cập nhật đơn thuốc thành công');
+    toast({
+      title: 'Thành công',
+      description: 'Đã cập nhật đơn thuốc thành công'
+    });
   };
 
   const handleViewPrescription = (prescription: Prescription) => {
@@ -54,9 +89,15 @@ export default function PrescriptionsPage() {
   };
 
   const handlePrintPrescription = (prescription: Prescription) => {
-    // TODO: Implement print functionality in Phase 4
-    toast.info('Chức năng in đơn thuốc sẽ được phát triển trong Phase 4');
-    console.log('Print prescription:', prescription);
+    printPrescription(prescription);
+    toast({
+      title: 'Thành công',
+      description: 'Đã mở cửa sổ in đơn thuốc'
+    });
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    return PRESCRIPTION_STATUS_VARIANTS[status as keyof typeof PRESCRIPTION_STATUS_VARIANTS] || 'outline';
   };
 
   return (
@@ -70,7 +111,10 @@ export default function PrescriptionsPage() {
           </p>
         </div>
         <Button 
-          onClick={() => setShowCreateDialog(true)}
+          onClick={() => {
+            setEditingPrescription(null);
+            setShowCreateDialog(true);
+          }}
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -135,13 +179,123 @@ export default function PrescriptionsPage() {
         </Card>
       </div>
 
-      {/* Prescription List */}
-      <PrescriptionList
-        prescriptions={prescriptions}
-        onView={handleViewPrescription}
-        onEdit={handleEditPrescription}
-        onPrint={handlePrintPrescription}
-      />
+      {/* Filters */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2 flex-1 max-w-md">
+          <Search className="h-4 w-4 text-gray-500" />
+          <Input
+            placeholder="Tìm kiếm theo tên bệnh nhân, chẩn đoán..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-gray-500" />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Lọc theo trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="Draft">Bản nháp</SelectItem>
+              <SelectItem value="Finalized">Đã hoàn thành</SelectItem>
+              <SelectItem value="Dispensed">Đã cấp thuốc</SelectItem>
+              <SelectItem value="Cancelled">Đã hủy</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Prescription Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredPrescriptions.map((prescription) => (
+          <Card key={prescription.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold truncate">
+                  {prescription.patientName}
+                </CardTitle>
+                <Badge variant={getStatusBadgeVariant(prescription.status)}>
+                  {PRESCRIPTION_STATUS_LABELS[prescription.status as keyof typeof PRESCRIPTION_STATUS_LABELS]}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="h-4 w-4" />
+                <span>{formatDate(prescription.date)}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                <User className="h-4 w-4 text-gray-500" />
+                <span className="font-medium">Bác sĩ:</span>
+                <span>{prescription.doctorName}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Stethoscope className="h-4 w-4 text-gray-500" />
+                <span className="font-medium">Chẩn đoán:</span>
+                <span className="truncate" title={prescription.diagnosis}>
+                  {prescription.diagnosis}
+                </span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Số loại thuốc:</span>
+                <span className="ml-2">{prescription.items.length}</span>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Tổng chi phí:</span>
+                <span className="ml-2 font-semibold text-green-600">
+                  {formatCurrency(prescription.totalCost)}
+                </span>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewPrescription(prescription)}
+                  className="flex-1"
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  Xem
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditPrescription(prescription)}
+                  className="flex-1"
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Sửa
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePrintPrescription(prescription)}
+                  className="flex-1"
+                >
+                  <Printer className="h-4 w-4 mr-1" />
+                  In
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredPrescriptions.length === 0 && (
+        <div className="text-center py-12">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-600">Không tìm thấy đơn thuốc</h3>
+          <p className="text-gray-500 mt-2">
+            {searchTerm || statusFilter !== 'all' 
+              ? 'Thử thay đổi bộ lọc để xem thêm kết quả' 
+              : 'Chưa có đơn thuốc nào được tạo'
+            }
+          </p>
+        </div>
+      )}
 
       {/* Create/Edit Prescription Dialog */}
       <PrescriptionDialog

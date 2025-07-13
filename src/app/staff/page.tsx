@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { staff as mockStaff, appointments as mockAppointments, medicalRecords as mockMedicalRecords } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Phone, Mail, UserPlus, Loader2 } from 'lucide-react';
+import { Phone, Mail, UserPlus, Loader2, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -183,6 +183,12 @@ export default function StaffPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow space-y-3 pt-2">
+                             {['Bác sĩ', 'Điều dưỡng'].includes(staffMember.role) && staffMember.licenseNumber && (
+                                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                    <FileText className="h-4 w-4 flex-shrink-0" />
+                                    <span>GPHN: {staffMember.licenseNumber}</span>
+                                </div>
+                            )}
                             <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                 <Phone className="h-4 w-4 flex-shrink-0" />
                                 <span>{staffMember.phone}</span>
