@@ -66,11 +66,42 @@ export function generatePatientId(existingPatients: { id: string }[], creationDa
 }
 
 // Prescription utilities
-export function generatePrescriptionId(existingPrescriptions: Prescription[] = []): string {
-  const today = new Date();
-  const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
-  const existingCount = existingPrescriptions.filter(p => p.id.startsWith(`PR${dateStr}`)).length;
-  return `PR${dateStr}${String(existingCount + 1).padStart(3, '0')}`;
+export function generatePrescriptionId(existingPrescriptions: Prescription[] = [], facilityCode: string = '01234', prescriptionType: 'N' | 'H' | 'C' = 'C'): string {
+  // Tạo mã đơn thuốc theo quy định: xxxxxyyyyyyy-z
+  // x: 5 ký tự mã cơ sở khám bệnh, chữa bệnh
+  // y: 7 ký tự mã đơn thuốc ngẫu nhiên (0-9, a-z)
+  // z: loại đơn thuốc (N: gây nghiện, H: hướng thần, C: khác)
+
+  const generateRandomCode = (length: number): string => {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  // Đảm bảo mã cơ sở có đúng 5 ký tự
+  const normalizedFacilityCode = facilityCode.padStart(5, '0').substring(0, 5);
+
+  let prescriptionCode: string;
+  let fullId: string;
+  let attempts = 0;
+  const maxAttempts = 100;
+
+  do {
+    // Tạo 7 ký tự ngẫu nhiên cho mã đơn thuốc
+    prescriptionCode = generateRandomCode(7);
+    fullId = `${normalizedFacilityCode}${prescriptionCode}-${prescriptionType}`;
+    attempts++;
+
+    // Kiểm tra tính duy nhất
+    if (!existingPrescriptions.some(p => p.id === fullId) || attempts >= maxAttempts) {
+      break;
+    }
+  } while (attempts < maxAttempts);
+
+  return fullId;
 }
 
 export function calculatePrescriptionTotal(items: PrescriptionItem[]): number {
@@ -115,20 +146,47 @@ export function getPrescriptionStatusVariant(status: string): 'default' | 'secon
 }
 
 export function generatePrescriptionHTML(prescription: Prescription): string {
-  const currentDate = new Date().toLocaleDateString('vi-VN');
-  const patientAge = prescription.patientAge || (prescription.patientName ? 'N/A' : 'N/A');
-  
+  // Format date in Vietnamese style
+  const currentDate = new Date();
+  const day = currentDate.getDate();
+  const month = currentDate.getMonth() + 1;
+  const year = currentDate.getFullYear();
+  const formattedDate = `Ngày ${day} tháng ${month} năm ${year}`;
+
+  // Calculate patient age and format birth date
+  const patientAge = prescription.patientAge || 'N/A';
+  const patientBirthDate = prescription.patientAge ?
+    `${new Date().getFullYear() - prescription.patientAge}` : 'N/A';
+
+  // Format gender display
+  const formatGender = (gender?: string) => {
+    if (!gender) return 'N/A';
+    switch (gender.toLowerCase()) {
+      case 'male': return 'Nam';
+      case 'female': return 'Nữ';
+      case 'other': return 'Khác';
+      default: return gender;
+    }
+  };
+
+  // Format doctor notes as bulleted list
+  const formatDoctorNotes = (notes: string) => {
+    if (!notes) return '';
+    const lines = notes.split('\n').filter(line => line.trim());
+    return lines.map(line => `<li>${line.trim()}</li>`).join('');
+  };
+
   const medicationRows = prescription.items.map((item, index) => `
     <tr>
-      <td class="border p-2 text-center">${index + 1}</td>
-      <td class="border p-2">
-        <strong>${item.medicationName}</strong>
+      <td class="border p-1 text-center">${index + 1}</td>
+      <td class="border p-1">
+        <strong style="font-size: 10px;">${item.medicationName}</strong>
         <br>
-        <span class="text-xs text-gray-600">(${item.concentration} - ${item.dosageForm})</span>
+        <span style="font-size: 8px; color: #6b7280;">(${item.concentration} - ${item.dosageForm})</span>
       </td>
-      <td class="border p-2 text-center">${item.unit}</td>
-      <td class="border p-2 text-center">${item.quantity}</td>
-      <td class="border p-2">${item.dosage}, ${item.instructions}</td>
+      <td class="border p-1 text-center">${item.unit}</td>
+      <td class="border p-1 text-center">${item.quantity}</td>
+      <td class="border p-1" style="font-size: 9px;">${item.dosage}, ${item.instructions}</td>
     </tr>
   `).join('');
 
@@ -147,49 +205,118 @@ export function generatePrescriptionHTML(prescription: Prescription): string {
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
         }
+
+        /* Cấu hình cho khổ giấy A5 khổ đứng */
         @page {
-            size: A5;
-            margin: 1cm;
+            size: A5 portrait;
+            margin: 0.8cm;
         }
+
+        /* Điều chỉnh scale cho A5 */
+        .prescription-container {
+            width: 148mm; /* Chiều rộng A5 trừ margin */
+            min-height: 200mm; /* Chiều cao A5 trừ margin */
+            max-width: 148mm;
+            font-size: 11px; /* Giảm font size để vừa trang */
+            line-height: 1.3;
+            margin: 0 auto;
+            padding: 8mm;
+            box-sizing: border-box;
+        }
+
+        /* Tối ưu hóa giao diện khi in */
         @media print {
             body {
                 background-color: #fff;
+                margin: 0;
+                padding: 0;
             }
             .prescription-container {
                 box-shadow: none;
                 margin: 0;
+                padding: 8mm;
+                width: 100%;
                 max-width: 100%;
                 border: none;
+                font-size: 10px; /* Font nhỏ hơn khi in */
             }
             .no-print {
                 display: none;
             }
         }
-        table {
+
+        /* Điều chỉnh kích thước các thành phần */
+        .prescription-container h1 {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .prescription-container h2 {
+            font-size: 12px;
+        }
+
+        .prescription-container table {
+            font-size: 10px;
             page-break-inside: auto;
         }
-        tr {
+
+        .prescription-container tr {
             page-break-inside: avoid;
             page-break-after: auto;
         }
-        thead {
+
+        .prescription-container thead {
             display: table-header-group;
         }
-        tfoot {
+
+        .prescription-container tfoot {
             display: table-footer-group;
+        }
+
+        /* Điều chỉnh khoảng cách */
+        .prescription-container .text-xs {
+            font-size: 9px;
+        }
+
+        .prescription-container .text-sm {
+            font-size: 10px;
+        }
+
+        /* QR Code size */
+        .qr-code {
+            width: 80px;
+            height: 80px;
+        }
+
+        /* Responsive cho màn hình nhỏ */
+        @media (max-width: 768px) {
+            .prescription-container {
+                width: 100%;
+                max-width: 100%;
+                margin: 10px;
+                padding: 15px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <div class="max-w-4xl mx-auto mb-4 text-right no-print">
-        <button onclick="window.print()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+    <!-- Nút In Đơn Thuốc (Sẽ bị ẩn khi in) -->
+    <div class="no-print" style="text-align: center; padding: 10px; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <button onclick="window.print()" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; margin-right: 10px;">
             🖨️ In đơn thuốc
+        </button>
+        <button onclick="window.close()" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 14px;">
+            ✖️ Đóng
         </button>
     </div>
 
-    <div id="prescription" class="prescription-container max-w-4xl mx-auto bg-white p-6 md:p-8 rounded-lg shadow-lg border border-gray-200">
+    <!-- Khung chứa toàn bộ đơn thuốc -->
+    <div id="prescription" class="prescription-container bg-white shadow-lg border border-gray-200">
         
         <header class="flex justify-between items-start pb-4 border-b-2 border-gray-200">
             <div class="text-xs">
@@ -201,37 +328,44 @@ export function generatePrescriptionHTML(prescription: Prescription): string {
             <div class="text-center">
                 <p class="text-xs">Mã đơn thuốc:</p>
                 <p class="font-mono font-bold text-sm">${prescription.id}</p>
-                <img src="https://placehold.co/100x100/e2e8f0/333?text=QR+CODE" 
-                     alt="QR Code tra cứu đơn thuốc" 
-                     class="w-24 h-24 mt-1"
-                     onerror="this.onerror=null;this.src='https://placehold.co/100x100/e2e8f0/333?text=QR+Error';">
+                <img src="https://quickchart.io/qr?text=${encodeURIComponent(prescription.id)}&size=250"
+                     alt="QR Code tra cứu đơn thuốc"
+                     class="qr-code mt-1 mx-auto"
+                     onerror="this.onerror=null;this.src='https://placehold.co/60x60/e2e8f0/333?text=QR+Error';">
             </div>
         </header>
 
-        <div class="text-center my-6">
-            <h1 class="text-2xl md:text-3xl font-bold uppercase">ĐƠN THUỐC</h1>
+        <!-- TIÊU ĐỀ ĐƠN THUỐC -->
+        <div class="text-center my-4">
+            <h1 class="font-bold uppercase" style="font-size: 18px;">ĐƠN THUỐC</h1>
         </div>
 
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-            <div><strong>Họ và tên:</strong> ${prescription.patientName.toUpperCase()}</div>
-            <div><strong>Tuổi:</strong> ${patientAge}</div>
-            <div><strong>Giới tính:</strong> ${prescription.patientGender === 'Male' ? 'Nam' : prescription.patientGender === 'Female' ? 'Nữ' : 'Khác'}</div>
-            <div><strong>Cân nặng:</strong> ${prescription.patientWeight || 'N/A'} kg</div>
-            <div class="md:col-span-2"><strong>Địa chỉ:</strong> ${prescription.patientAddress || 'N/A'}</div>
-            <div class="md:col-span-2 bg-gray-100 p-2 rounded-md">
-                <strong class="text-red-600">Chẩn đoán:</strong> ${prescription.diagnosis}
+        <!-- PHẦN THÔNG TIN BỆNH NHÂN -->
+        <section class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-4">
+            <div><strong>Họ và tên:</strong> ${prescription.patientName ? prescription.patientName.toUpperCase() : 'N/A'}</div>
+            <div><strong>Ngày sinh:</strong> ${patientBirthDate} (${patientAge} tuổi)</div>
+            <div><strong>Giới tính:</strong> ${formatGender(prescription.patientGender)}</div>
+            <div><strong>Số CCCD:</strong> ${prescription.patientId || 'N/A'}</div>
+            <div><strong>Cân nặng:</strong> ${prescription.patientWeight ? `${prescription.patientWeight} kg` : 'N/A'}</div>
+            <div><strong>Số thẻ BHYT:</strong> N/A</div>
+            <div class="col-span-2"><strong>Địa chỉ:</strong> ${prescription.patientAddress || 'N/A'}</div>
+            <div class="col-span-2 bg-gray-100 p-2 rounded-md mt-2">
+                <strong style="color: #dc2626; font-size: 11px;">
+                    Chẩn đoán: ${prescription.diagnosis || 'Chưa có chẩn đoán'}
+                </strong>
             </div>
         </section>
 
-        <section class="mt-6">
-            <table class="w-full border-collapse text-sm">
+        <!-- PHẦN KÊ ĐƠN THUỐC -->
+        <section class="mt-3">
+            <table class="w-full border-collapse" style="font-size: 10px;">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="border p-2 text-center font-semibold">TT</th>
-                        <th class="border p-2 text-left font-semibold">Tên thuốc, nồng độ, hàm lượng</th>
-                        <th class="border p-2 text-center font-semibold">ĐVT</th>
-                        <th class="border p-2 text-center font-semibold">SL</th>
-                        <th class="border p-2 text-left font-semibold">Liều dùng - Cách dùng</th>
+                        <th class="border p-1 text-center font-semibold" style="width: 8%;">TT</th>
+                        <th class="border p-1 text-left font-semibold" style="width: 35%;">Tên thuốc, nồng độ</th>
+                        <th class="border p-1 text-center font-semibold" style="width: 10%;">ĐVT</th>
+                        <th class="border p-1 text-center font-semibold" style="width: 8%;">SL</th>
+                        <th class="border p-1 text-left font-semibold" style="width: 39%;">Liều dùng - Cách dùng</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -240,39 +374,49 @@ export function generatePrescriptionHTML(prescription: Prescription): string {
             </table>
         </section>
 
+        <!-- LỜI DẶN CỦA BÁC SĨ -->
         ${prescription.doctorNotes ? `
-        <section class="mt-6 text-sm">
+        <section class="mt-3" style="font-size: 10px;">
             <p><strong>Lời dặn của bác sĩ:</strong></p>
-            <div class="pl-4 mt-1">
-                ${prescription.doctorNotes.replace(/\n/g, '<br>')}
-            </div>
+            <ul class="list-disc list-inside pl-3 mt-1">
+                ${formatDoctorNotes(prescription.doctorNotes)}
+            </ul>
         </section>
         ` : ''}
 
-        <footer class="mt-8 pt-4">
+        <!-- PHẦN CUỐI: Ngày tháng, chữ ký -->
+        <footer class="mt-4 pt-3">
             <div class="flex justify-between items-start">
-                <div class="text-center w-1/2">
+                <!-- Thông tin người nhận thuốc -->
+                <div class="text-center w-1/2" style="font-size: 10px;">
                     <p class="font-semibold">Người nhận thuốc/Người nhà</p>
-                    <p class="text-xs italic">(Ký, ghi rõ họ tên)</p>
-                    <div class="h-20"></div>
+                    <p style="font-size: 8px; font-style: italic;">(Ký, ghi rõ họ tên)</p>
+                    <div style="height: 40px;"></div> <!-- Khoảng trống để ký tên -->
                 </div>
 
-                <div class="text-center w-1/2">
-                    <p class="text-sm"><em>${currentDate}</em></p>
-                    <p class="font-semibold mt-1">Bác sĩ/Y sĩ kê đơn</p>
-                    <div class="h-12 flex items-center justify-center">
-                        <span class="italic text-green-600">-- Đã ký số --</span>
+                <!-- Thông tin bác sĩ kê đơn -->
+                <div class="text-center w-1/2" style="font-size: 10px;">
+                    <p style="font-style: italic;">${formattedDate}</p>
+                    <p class="font-semibold mt-1">Bác sĩ kê đơn</p>
+                    <div style="height: 30px; display: flex; align-items: center; justify-content: center;">
+                        <!-- Đây là nơi hiển thị thông tin chữ ký số đã được xác thực -->
+                        <span style="font-style: italic; color: #16a34a;">-- Đã ký số --</span>
                     </div>
-                    <p class="font-bold text-base">${prescription.doctorName.toUpperCase()}</p>
-                    ${prescription.doctorLicense ? `<p class="text-xs">Số GPHN: ${prescription.doctorLicense}</p>` : ''}
+                    <p class="font-bold" style="font-size: 11px;">${prescription.doctorName ? prescription.doctorName.toUpperCase() : 'N/A'}</p>
+                    ${prescription.doctorLicense ? `<p style="font-size: 8px;">Số GPHN: ${prescription.doctorLicense}</p>` : ''}
                 </div>
             </div>
             ${prescription.nextAppointment ? `
-            <div class="mt-4 text-center text-xs text-gray-500">
+            <div class="mt-2 text-center" style="font-size: 8px; color: #6b7280;">
                 <p><strong>Hẹn tái khám:</strong> ${formatDate(prescription.nextAppointment)}</p>
-                <p class="mt-2">Vui lòng mang theo đơn này khi tái khám.</p>
+                <p class="mt-1">Vui lòng mang theo đơn này khi tái khám.</p>
             </div>
-            ` : ''}
+            ` : `
+            <div class="mt-2 text-center" style="font-size: 8px; color: #6b7280;">
+                <p><strong>Hẹn tái khám:</strong> Theo chỉ định của bác sĩ hoặc khi có dấu hiệu bất thường.</p>
+                <p class="mt-1">Vui lòng mang theo đơn này khi tái khám.</p>
+            </div>
+            `}
         </footer>
     </div>
 </body>
@@ -287,9 +431,6 @@ export function printPrescription(prescription: Prescription): void {
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 500);
+    // Không tự động in, chỉ hiển thị trang để người dùng xem trước
   }
 }

@@ -31,7 +31,7 @@ import {
   MEDICATION_UNITS,
   PRESCRIPTION_VALIDATION
 } from '@/lib/prescription-constants';
-import { medications as availableMedications } from '@/lib/mock-data';
+import { seedAndFetchCollection } from '@/lib/firestore-utils';
 
 interface PrescriptionFormProps {
   patient?: Patient;
@@ -63,13 +63,29 @@ export default function PrescriptionForm({
   mode = 'create'
 }: PrescriptionFormProps) {
   const { toast } = useToast();
+  const [availableMedications, setAvailableMedications] = useState<Medication[]>([]);
+  const [isLoadingMedications, setIsLoadingMedications] = useState(true);
+
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        const meds = await seedAndFetchCollection('medications', []);
+        setAvailableMedications(meds);
+      } catch (error) {
+        console.error("Failed to load medications:", error);
+        toast({ variant: 'destructive', title: 'Lỗi', description: 'Không thể tải danh sách thuốc.' });
+      } finally {
+        setIsLoadingMedications(false);
+      }
+    };
+    fetchMedications();
+  }, [toast]);
   
   // Filter medications that are in stock and not expired
   const validMedications = availableMedications.filter(med => {
-    const today = new Date();
+    const today = new Date('2025-07-13');
+    today.setHours(0, 0, 0, 0);
     const expiryDate = new Date(med.expiryDate);
-    // Only exclude medications that are expired or have zero stock
-    // Allow medications with low stock (below threshold) since they can still be prescribed
     return med.stock > 0 && expiryDate > today;
   });
 
@@ -225,8 +241,8 @@ export default function PrescriptionForm({
         concentration: medication.concentration,
         dosageForm: medication.dosageForm,
         unit: medication.unit,
-        unitPrice: medication.sellPrice,
-        totalCost: (prev.quantity || 1) * medication.sellPrice
+        unitPrice: medication.sellPrice || 0,
+        totalCost: (prev.quantity || 1) * (medication.sellPrice || 0)
       }));
     }
   };
@@ -236,8 +252,8 @@ export default function PrescriptionForm({
 
     setIsLoading(true);
     try {
-      const prescriptionId = mode === 'create' 
-        ? generatePrescriptionId([]) // TODO: Get existing prescriptions for collision check
+      const prescriptionId = mode === 'create'
+        ? generatePrescriptionId([], formData.clinicInfo?.licenseNumber || '01234', 'C') // TODO: Get existing prescriptions for collision check
         : formData.id || '';
 
       const prescription: Prescription = {
@@ -413,29 +429,7 @@ export default function PrescriptionForm({
             </Alert>
           )}
 
-          {/* Temporary debug info */}
-          <Alert className="bg-blue-50 border-blue-200">
-            <AlertDescription>
-              <strong>Thông tin debug:</strong> Tổng thuốc: {availableMedications.length}, Thuốc hợp lệ: {validMedications.length}
-              <br />
-              <small>Thuốc hợp lệ: {validMedications.map(m => m.name).join(', ')}</small>
-              <details className="mt-2">
-                <summary className="cursor-pointer text-sm font-medium">Chi tiết tất cả thuốc</summary>
-                <div className="mt-2 space-y-1 text-xs">
-                  {availableMedications.map(med => {
-                    const today = new Date();
-                    const expiryDate = new Date(med.expiryDate);
-                    const isValid = med.stock > 0 && expiryDate > today;
-                    return (
-                      <div key={med.id} className={isValid ? 'text-green-600' : 'text-red-500'}>
-                        {med.name} - Tồn kho: {med.stock} - HSD: {med.expiryDate} - {isValid ? '✓ Hợp lệ' : '✗ Không hợp lệ'}
-                      </div>
-                    );
-                  })}
-                </div>
-              </details>
-            </AlertDescription>
-          </Alert>
+          
 
           {/* Medication Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -467,7 +461,7 @@ export default function PrescriptionForm({
                               {isExpiringSoon && <Badge variant="outline" className="text-xs">Gần hết hạn</Badge>}
                             </div>
                             <span className="text-xs text-muted-foreground">
-                              Tồn kho: {med.stock} {med.unit} | Giá: {med.sellPrice.toLocaleString()}đ
+                              Tồn kho: {med.stock} {med.unit} | Giá: {(med.sellPrice || 0).toLocaleString()}đ
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {med.concentration} • {med.dosageForm}

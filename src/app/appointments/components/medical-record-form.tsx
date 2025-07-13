@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,7 +26,7 @@ import type { Appointment, MedicalRecord, Medication, PrescriptionItem, Prescrip
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { medications as availableMedications } from '@/lib/mock-data';
+import { seedAndFetchCollection } from '@/lib/firestore-utils';
 import { generatePrescriptionId, printPrescription, generatePrescriptionValidUntil } from '@/lib/utils';
 import { DEFAULT_CLINIC_INFO } from '@/lib/prescription-constants';
 
@@ -52,6 +52,22 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
   const [isSaving, setIsSaving] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [prescriptionItems, setPrescriptionItems] = useState<PrescriptionItem[]>([]);
+  const [availableMedications, setAvailableMedications] = useState<Medication[]>([]);
+  const [isLoadingMedications, setIsLoadingMedications] = useState(true);
+
+  useEffect(() => {
+    const fetchMedications = async () => {
+      try {
+        const meds = await seedAndFetchCollection('medications', []);
+        setAvailableMedications(meds);
+      } catch (error) {
+        console.error("Failed to load medications:", error);
+      } finally {
+        setIsLoadingMedications(false);
+      }
+    };
+    fetchMedications();
+  }, []);
   const [currentMedication, setCurrentMedication] = useState<Partial<PrescriptionItem>>({
     medicationId: '',
     medicationName: '',
@@ -68,7 +84,8 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
   
   // Filter medications that are in stock and not expired
   const validMedications = availableMedications.filter(med => {
-    const today = new Date();
+    const today = new Date('2025-07-13');
+    today.setHours(0, 0, 0, 0);
     const expiryDate = new Date(med.expiryDate);
     return med.stock > 0 && expiryDate > today;
   });
@@ -96,8 +113,8 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
         unit: medication.unit,
         dosage: '',
         instructions: '',
-        unitPrice: medication.sellPrice,
-        totalCost: medication.sellPrice,
+        unitPrice: medication.sellPrice || 0,
+        totalCost: medication.sellPrice || 0,
         notes: ''
       });
     }
@@ -170,7 +187,7 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
         symptoms: data.symptoms,
         diagnosis: data.diagnosis,
         treatment: data.treatment,
-        prescription: prescriptionText || data.prescription || undefined,
+        prescription: prescriptionText || undefined,
         nextAppointment: data.nextAppointment ? format(data.nextAppointment, 'yyyy-MM-dd') : undefined,
         notes: data.notes || undefined,
       };
@@ -282,7 +299,7 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
                               <div className="flex flex-col">
                                 <span>{med.name}</span>
                                 <span className="text-xs text-muted-foreground">
-                                  Tồn kho: {med.stock} {med.unit} | Giá: {med.sellPrice.toLocaleString()}đ
+                                  Tồn kho: {med.stock} {med.unit} | Giá: {(med.sellPrice || 0).toLocaleString()}đ
                                 </span>
                               </div>
                             </SelectItem>
@@ -351,7 +368,7 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
                               {item.dosage} - {item.instructions}
                             </div>
                             <div className="text-xs text-muted-foreground">
-                              Số lượng: {item.quantity} {item.unit} | Thành tiền: {item.totalCost.toLocaleString()}đ
+                              Số lượng: {item.quantity} {item.unit} | Thành tiền: {(item.totalCost || 0).toLocaleString()}đ
                             </div>
                           </div>
                           <Button
@@ -365,32 +382,14 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
                         </div>
                       ))}
                       <div className="text-right font-semibold pt-2 border-t">
-                        Tổng chi phí: {prescriptionItems.reduce((sum, item) => sum + item.totalCost, 0).toLocaleString()}đ
+                        Tổng chi phí: {prescriptionItems.reduce((sum, item) => sum + (item.totalCost || 0), 0).toLocaleString()}đ
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Fallback prescription textarea */}
-              <FormField
-                control={form.control}
-                name="prescription"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Đơn thuốc (văn bản)</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Nhập đơn thuốc bằng văn bản (tùy chọn)" 
-                        className="min-h-[60px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              </div>
 
             <FormField
               control={form.control}
@@ -442,10 +441,10 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Ghi chú thêm</FormLabel>
+                  <FormLabel>Lời dặn của bác sĩ</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Ghi chú thêm về tình trạng bệnh nhân..." 
+                      placeholder="Nhập lời dặn của bác sĩ..." 
                       className="min-h-[60px]"
                       {...field} 
                     />
@@ -483,7 +482,7 @@ export function MedicalRecordForm({ appointment, onSave, onClose, onCreateInvoic
             onClick={() => {
               // Create prescription object for printing
               const prescription: Prescription = {
-                id: generatePrescriptionId([]),
+                id: generatePrescriptionId([], DEFAULT_CLINIC_INFO.licenseNumber, 'C'),
                 patientId: '', // Will be populated by parent
                 patientName: appointment.patientName,
                 patientAge: undefined,

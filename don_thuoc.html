@@ -69,14 +69,14 @@
             <!-- Thông tin cơ sở khám bệnh, chữa bệnh -->
             <div class="text-xs">
                 <h2 class="font-bold text-sm uppercase text-blue-700">PHÒNG KHÁM ĐA KHOA ABC</h2>
-                <p class="mt-1"><strong>Địa chỉ:</strong> Số 123, Đường XYZ, Phường Cống Vị, Quận Ba Đình, Hà Nội</p>
+                <p class="mt-1"><strong>Địa chỉ:</strong> Số 123, Đường XYZ, Phường Ninh Kiều, Thành phố Cần Thơ </p>
                 <p><strong>Điện thoại:</strong> (024) 3456 7890</p>
-                <p><strong>Mã CSKCB:</strong> 01-234</p>
+                <p><strong>Mã CSKCB:</strong> 01234</p>
             </div>
             <!-- Mã đơn thuốc và QR Code -->
             <div class="text-center">
                 <p class="text-xs">Mã đơn thuốc:</p>
-                <p class="font-mono font-bold text-sm">123456789_ABC</p>
+                <p class="font-mono font-bold text-sm">01234a1b2c3d-C</p>
                 <!-- Thay thế src bằng QR code thật được tạo từ hệ thống -->
                 <img src="https://placehold.co/100x100/e2e8f0/333?text=QR+CODE" 
                      alt="QR Code tra cứu đơn thuốc" 
@@ -92,16 +92,19 @@
             <!-- Ví dụ: <h1 class="text-2xl font-bold uppercase">ĐƠN THUỐC "N"</h1> -->
         </div>
 
-        <!-- PHẦN THÔNG TIN BỆNH NHÂN -->
+        <!-- PHẦN THÔNG TIN BỆNH NHÂN (DỮ LIỆU ĐỘNG) -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-            <div><strong>Họ và tên:</strong> NGUYỄN VĂN A</div>
-            <div><strong>Ngày sinh:</strong> 01/01/1985 (39 tuổi)</div>
-            <div><strong>Giới tính:</strong> Nam</div>
-            <div><strong>Cân nặng:</strong> 70 kg</div>
-            <div class="md:col-span-2"><strong>Địa chỉ:</strong> Số 10, Ngõ 50, Phố Liễu Giai, Phường Liễu Giai, Quận Ba Đình, Hà Nội</div>
-            <div class="md:col-span-2"><strong>Số thẻ BHYT:</strong> HN 2 0123456789 (nếu có)</div>
+            <div><strong>Họ và tên:</strong> <span id="patient-name"><!-- Dữ liệu động --></span></div>
+            <div><strong>Ngày sinh:</strong> <span id="patient-dob"><!-- Dữ liệu động --></span> (<span id="patient-age"></span> tuổi)</div>
+            <div><strong>Giới tính:</strong> <span id="patient-gender"><!-- Dữ liệu động --></span></div>
+            <div><strong>Số CCCD/Định danh:</strong> <span id="patient-id-card"><!-- Dữ liệu động --></span></div>
+            <div><strong>Cân nặng:</strong> <span id="patient-weight"><!-- Dữ liệu động --></span> kg</div>
+            <div class="md:col-span-2"><strong>Địa chỉ:</strong> <span id="patient-address"><!-- Dữ liệu động --></span></div>
+            <div class="md:col-span-2"><strong>Số thẻ BHYT:</strong> <span id="patient-bhyt"><!-- Dữ liệu động --></span></div>
             <div class="md:col-span-2 bg-gray-100 p-2 rounded-md">
-                <strong class="text-red-600">Chẩn đoán:</strong> Viêm họng cấp (J02.9)
+                <strong class="text-red-600" id="diagnosis-content">
+                    Chẩn đoán: <!-- Backend sẽ chèn chẩn đoán vào đây -->
+                </strong>
             </div>
         </section>
 
@@ -117,40 +120,21 @@
                         <th class="border p-2 text-left font-semibold">Liều dùng - Cách dùng</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Dòng 1: Dữ liệu thuốc mẫu -->
-                    <tr>
-                        <td class="border p-2 text-center">1</td>
-                        <td class="border p-2">
-                            <strong>Paracetamol 500mg</strong>
-                            <br>
-                            <span class="text-xs text-gray-600">(Tên biệt dược: Panadol)</span>
-                        </td>
-                        <td class="border p-2 text-center">Viên</td>
-                        <td class="border p-2 text-center">20</td>
-                        <td class="border p-2">Uống 1 viên/lần, 3-4 lần/ngày sau ăn khi sốt trên 38.5°C.</td>
-                    </tr>
-                    <!-- Dòng 2: Dữ liệu thuốc mẫu -->
-                    <tr>
-                        <td class="border p-2 text-center">2</td>
-                        <td class="border p-2">
-                            <strong>Amoxicilin 500mg</strong>
-                        </td>
-                        <td class="border p-2 text-center">Viên</td>
-                        <td class="border p-2 text-center">14</td>
-                        <td class="border p-2">Uống 1 viên/lần, 2 lần/ngày (sáng, tối) sau ăn. Uống hết liều.</td>
-                    </tr>
-                    <!-- Dòng 3: Dữ liệu thuốc mẫu -->
-                     <tr>
-                        <td class="border p-2 text-center">3</td>
-                        <td class="border p-2">
-                            <strong>Alpha chymotrypsin 4.2mg</strong>
-                        </td>
-                        <td class="border p-2 text-center">Viên</td>
-                        <td class="border p-2 text-center">30</td>
-                        <td class="border p-2">Ngậm dưới lưỡi 2 viên/lần, 3-4 lần/ngày.</td>
-                    </tr>
-                    <!-- Thêm các dòng thuốc khác tại đây -->
+                <tbody id="drug-list-body">
+                    <!-- 
+                        Backend sẽ lặp qua danh sách thuốc và tạo các dòng <tr> theo cấu trúc sau:
+                        <tr>
+                            <td class="border p-2 text-center">[Số thứ tự]</td>
+                            <td class="border p-2">
+                                <strong>[Tên thuốc, hàm lượng]</strong>
+                                <br>
+                                <span class="text-xs text-gray-600">(Tên biệt dược: [Tên biệt dược nếu có])</span>
+                            </td>
+                            <td class="border p-2 text-center">[Đơn vị tính]</td>
+                            <td class="border p-2 text-center">[Số lượng]</td>
+                            <td class="border p-2">[Liều dùng - Cách dùng]</td>
+                        </tr>
+                    -->
                 </tbody>
             </table>
         </section>
@@ -158,11 +142,8 @@
         <!-- LỜI DẶN CỦA BÁC SĨ -->
         <section class="mt-6 text-sm">
             <p><strong>Lời dặn của bác sĩ:</strong></p>
-            <ul class="list-disc list-inside pl-4 mt-1">
-                <li>Uống nhiều nước ấm, nghỉ ngơi, giữ ấm cổ.</li>
-                <li>Hạn chế đồ ăn cay nóng, dầu mỡ, nước đá lạnh.</li>
-                <li>Súc họng bằng nước muối sinh lý hàng ngày.</li>
-                <li>Nếu có dấu hiệu bất thường (phát ban, khó thở, sốt cao không hạ), cần đến cơ sở y tế gần nhất ngay.</li>
+            <ul class="list-disc list-inside pl-4 mt-1" id="doctor-advice-list">
+                <!-- Backend sẽ lặp và chèn các mục lời dặn (<li>) vào đây -->
             </ul>
         </section>
 
@@ -173,14 +154,15 @@
                 <div class="text-center w-1/2">
                     <p class="font-semibold">Người nhận thuốc/Người nhà</p>
                     <p class="text-xs italic">(Ký, ghi rõ họ tên)</p>
-                    <div class="h-20"></div> <!-- Khoảng trống để ký tên -->
+                    <div class="h-24"></div> <!-- Khoảng trống để ký tên -->
                 </div>
 
                 <!-- Thông tin bác sĩ kê đơn -->
                 <div class="text-center w-1/2">
-                    <p class="text-sm"><em>Ngày 03 tháng 07 năm 2025</em></p>
-                    <p class="font-semibold mt-1">Bác sĩ/Y sĩ kê đơn</p>
-                    <div class="h-12 flex items-center justify-center">
+                    <!-- ĐÃ CẬP NHẬT: Ngày kê đơn sẽ được điền động -->
+                    <p class="text-sm"><em id="prescription-date"><!-- Ngày kê đơn động, ví dụ: Ngày 11 tháng 07 năm 2025 --></em></p>
+                    <p class="font-semibold mt-1">Bác sĩ kê đơn</p>
+                    <div class="h-16 flex items-center justify-center">
                         <!-- Đây là nơi hiển thị thông tin chữ ký số đã được xác thực -->
                         <span class="italic text-green-600">-- Đã ký số --</span>
                     </div>
@@ -190,7 +172,7 @@
             </div>
             <div class="mt-4 text-center text-xs text-gray-500">
                 <p><strong>Hẹn tái khám:</strong> Sau 7 ngày hoặc khi có dấu hiệu bất thường.</p>
-                <p class="mt-2">Vui lòng mang theo đơn này khi tái khám. Đơn thuốc có giá trị mua/lĩnh thuốc trong vòng 05 ngày kể từ ngày kê đơn.</p>
+                <p class="mt-2">Vui lòng mang theo đơn này khi tái khám.</p>
             </div>
         </footer>
     </div>

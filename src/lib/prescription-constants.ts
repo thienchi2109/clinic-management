@@ -34,7 +34,7 @@ export const DEFAULT_CLINIC_INFO = {
   name: 'PHÒNG KHÁM ĐA KHOA ABC',
   address: 'Số 123, Đường XYZ, Phường Cống Vị, Quận Ba Đình, Hà Nội',
   phone: '(024) 3456 7890',
-  licenseNumber: '01-234'
+  licenseNumber: '01234'
 } as const;
 
 // Common Dosage Instructions (Vietnamese)
